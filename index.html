@@ -197,6 +197,17 @@
   .flag{margin-top:8px;background:none;color:var(--muted);font-size:13px;text-decoration:underline;padding:4px}
   .flag:disabled{text-decoration:none;color:var(--green)}
   .note.good{background:#dcfce7}
+  .sylrow{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 18px;font-size:50px;font-weight:700}
+  body.cursive .sylrow{font-family:"Playwrite SK",cursive;font-weight:400;font-size:40px}
+  .key.known{background:#c9f2b4}
+  .steplbl{font-weight:700;margin:10px 0 6px;color:var(--muted)}
+  .key.vk{color:var(--s1)}
+  .eq .res{color:#16a34a}
+  .eq.pop{animation:pop .45s}
+  .cws{display:flex;flex-wrap:wrap;gap:6px}
+  .cw{background:#eee;color:#888;border-radius:10px;padding:4px 10px;font-size:15px}
+  .cw small{font-size:12px}
+  .cw.ok{background:#dcfce7;color:#14532d;font-weight:700}
   .note.warn{background:#FFE1DC}
   select{font-family:inherit;font-size:15px;padding:6px;border-radius:10px;border:2px solid #e6d9c2;max-width:200px}
   .note{background:#FFF1CC;border-radius:14px;padding:10px 12px;font-size:15px;margin-top:10px}
@@ -293,15 +304,16 @@ loadS();
 function save(k){store.set(k,S[k])}
 
 /* ---------- Dáta ---------- */
+// Abeceda: každé písmeno so slovom, ktoré ním ZAČÍNA (A – auto, B – bubon…)
 const LETTERS=[
- ['A','auto','🚗'],['Á','kráľ','👑'],['Ä','mäso','🥩'],['B','banán','🍌'],['C','citrón','🍋'],['Č','čerešne','🍒'],
- ['D','dom','🏠'],['Ď','ďakujem','🙏'],['DZ','',''],['DŽ','džús','🧃'],['E','euro','💶'],['É','',''],
- ['F','farby','🎨'],['G','gitara','🎸'],['H','hruška','🍐'],['CH','chlieb','🍞'],['I','',''],['Í','líška','🦊'],
- ['J','jablko','🍎'],['K','koza','🐐'],['L','lev','🦁'],['Ĺ','',''],['Ľ','ľad','🧊'],['M','myš','🐭'],
- ['N','nos','👃'],['Ň','deň','🌞'],['O','oko','👁️'],['Ó','balón','🎈'],['Ô','kôň','🐴'],['P','pes','🐕'],
+ ['A','auto','🚗'],['Á','áno','👍'],['Ä','',''],['B','bubon','🥁'],['C','citrón','🍋'],['Č','čerešne','🍒'],
+ ['D','dom','🏠'],['Ď','ďateľ',''],['DZ','',''],['DŽ','džús','🧃'],['E','Ema','👧'],['É','',''],
+ ['F','farby','🎨'],['G','gitara','🎸'],['H','hruška','🍐'],['CH','chlieb','🍞'],['I','ihla','🪡'],['Í','',''],
+ ['J','jablko','🍎'],['K','koza','🐐'],['L','lev','🦁'],['Ĺ','',''],['Ľ','ľad','🧊'],['M','mama','👩'],
+ ['N','nos','👃'],['Ň','',''],['O','oko','👁️'],['Ó','',''],['Ô','',''],['P','pes','🐕'],
  ['Q','',''],['R','ryba','🐟'],['Ŕ','',''],['S','slon','🐘'],['Š','šál','🧣'],['T','torta','🎂'],
  ['Ť','ťava','🐫'],['U','ucho','👂'],['Ú','úsmev','😊'],['V','vlak','🚂'],['W','',''],['X','',''],
- ['Y','syr','🧀'],['Ý','býk','🐂'],['Z','zajac','🐰'],['Ž','žaba','🐸']
+ ['Y','',''],['Ý','',''],['Z','zajac','🐰'],['Ž','žaba','🐸']
 ];
 const FIND_LETTERS=['A','B','C','Č','D','E','F','G','H','I','J','K','L','M','N','O','P','R','S','Š','T','U','V','Z','Ž','Y'];
 
@@ -328,15 +340,6 @@ const SENTENCES=[
 ];
 
 /* Slová a vety z prvých písmeniek (A, E, I, L, M, V) – ďalšie sa odomknú, keď pridáte písmenká */
-const EXTRA_WORDS=['ma-ma|👩','la-ma|🦙','lev|🦁','vi-la|','mi-mi|👶','E-ma|','E-la|','E-va|','I-va|','Mi-la|','Mi-a|','Le-a|',
- 'E-mil|','Vil-ma|','a-le|','mal|','ma-la|','ma-li|','me-le|','mle-la|','vie|','viem|',
- 'Ti-na|','Te-o|','To-mi|','Sa-ša|','pi-la|','me-tla|🧹','o-sa|','se-no|','ta-to|','O-to|'];
-const LONG_WORDS=['má|','mám|','má-me|','vám|','mi-lá|','ma-lá|','ma-lé|','mi-lé|','ma-lí|','mi-lí|','lá-mal|','lá-ma-la|','Lí-vi-a|','E-mí-li-a|','mí-ľa|','vý-let|','lí-ce|','lú-ka|','vá-za|🏺'];
-const LONG_SENT=['Ema má mimi.','Mila má mimi.','Lea má malé mimi.','Mia má milé mimi.','Vilma má malé mimi.','Ela, máme mimi!','Ema je malá.','Mám malé mimi.'];
-const EXTRA_SENT=['Mama a Ema.','Ema a Ela.','Ema vie.','Mama vie.','Viem!','Mama, viem!','Lama a lev.','Lev i lama.',
- 'Ema mala mimi.','Mila mala mimi.','Lama mala mimi.','Lev mal mimi.','Mama mele.','Mama mlela.','Ela mele.',
- 'Ale lama vie.','Ale mama vie.','Iva i Ema.','Eva a Mia.','Emil a lev.','Emil vie.','Mimi a mama.','Vie mama?',
- 'Tato a mama.','Ema má psa.','Tomi má loptu.','Mama melie mak.','Ema a Tina sú tu.'];
 const BADGES=[['🐣','Začiatočník'],['📖','Malý čitateľ'],['🔤','Pán písmenko'],['🦉','Múdra sova'],['🧩','Skladač slov'],
  ['🔢','Počtár'],['🦁','Odvážny lev'],['🚀','Raketa'],['🐬','Šikovný delfín'],['🦖','Dino čitateľ'],['🧠','Mudrc'],['🌈','Dúhový hrdina'],
  ['🦅','Orol'],['🤖','Robot počtár'],['🐉','Drak čítania'],['🛸','Vesmírnik'],['🏅','Šampión'],['🏆','Víťaz'],['👑','Kráľ čítania'],['💎','Diamant']];
@@ -483,12 +486,13 @@ function home(){
      <div class="chips">${ALL_KEYS.map(L=>`<button class="chip ${S.known.includes(L)?'on':''}" data-l="${L}">${L}</button>`).join('')}</div>
    </div>
    <div class="panel">
-     <h3>Naše slová a vety (napr. zo šlabikára)</h3>
-     <div class="muted">Napíšte slová, ktoré práve čítate v škole – oddeľte ich čiarkou. Appka ich zaradí do hier, len čo dieťa pozná všetky ich písmená.</div>
+     <h3>⭐ Naše slová zo šlabikára</h3>
+     <div class="muted">Napíšte slová, ktoré práve čítate v škole (medzerou alebo čiarkou). Appka ich dáva v hrách častejšie a dajú sa hrať aj samostatne.</div>
      <textarea id="cWords" rows="3" placeholder="napr. mamka, lievik, Lela">${esc(store.get('cwords',''))}</textarea>
      <div class="muted" style="margin-top:8px">Vety – každú na nový riadok:</div>
      <textarea id="cSents" rows="4" placeholder="napr. Mama mele mak.">${esc(store.get('csents',''))}</textarea>
-     <div class="muted" id="cInfo"></div>
+     <div id="cInfo"></div>
+     <button class="big-btn" id="cPlay">▶ Hrať naše slová</button>
    </div>
    <div class="panel">
      <h3>Nastavenia</h3>
@@ -514,13 +518,20 @@ function home(){
     S.known=S.known.includes(L)?S.known.filter(x=>x!==L):ALL_KEYS.filter(x=>x===L||S.known.includes(x));
     save('known');const y=window.scrollY;home();window.scrollTo(0,y);
   });
+  const missing=t=>[...new Set(lettersOf(t).filter(l=>!S.known.includes(l)))];
   const cInfo=()=>{
-    const cw=customWords(), cs2=customSents(), okw=cw.filter(canRead).length, oks=cs2.filter(canRead).length;
-    $('cInfo').textContent=(cw.length||cs2.length)?`V hrách: ${okw} z ${cw.length} slov, ${oks} z ${cs2.length} viet. Ostatné majú písmená, ktoré ešte nepoznáte.`:'';
+    const cw=customWords(), cs2=customSents();
+    const chip=(t,ok)=>`<span class="cw ${ok?'ok':''}">${esc(t)}${ok?' ✔':` <small>chýba ${missing(t).join(', ')}</small>`}</span>`;
+    $('cInfo').innerHTML=(cw.length||cs2.length)?`<div class="muted" style="margin:8px 0 4px">✔ = už je v hrách · sivé = dieťa ešte nepozná všetky písmená</div>
+      <div class="cws">${cw.map(t=>chip(t,canRead(t))).join('')}</div>${cs2.length?`<div class="cws" style="margin-top:6px">${cs2.map(t=>chip(t,canRead(t))).join('')}</div>`:''}`:'';
+    $('cPlay').disabled=!(cw.some(canRead)||cs2.some(canRead));
   };
   cInfo();
-  $('cWords').onchange=()=>{store.set('cwords',$('cWords').value);cInfo();rerCounts()};
-  $('cSents').onchange=()=>{store.set('csents',$('cSents').value);cInfo();rerCounts()};
+  let cT=null;
+  const saveC=()=>{clearTimeout(cT);cT=setTimeout(()=>{if(!$('cWords'))return;store.set('cwords',$('cWords').value);store.set('csents',$('cSents').value);cInfo();rerCounts()},400)};
+  $('cWords').oninput=saveC; $('cSents').oninput=saveC;
+  $('cWords').onchange=saveC; $('cSents').onchange=saveC;
+  $('cPlay').onclick=()=>{clearTimeout(cT);store.set('cwords',$('cWords').value);store.set('csents',$('cSents').value);customGame()};
   function rerCounts(){
     const ws=getWords().filter(x=>canRead(x.w)).length, ss=getSents().filter(x=>canRead(x[0])).length;
     $('hW').querySelector('small').textContent=ws+' slov'; $('hS').querySelector('small').textContent=(ss>300?'stovky':ss)+' viet';
@@ -548,22 +559,39 @@ function highlight(word,L){
 function spk_(text){const b=document.getElementById('spk');if(b)b.onclick=()=>say(text)}
 
 /* ---------- Slabiky ---------- */
-function sylView(c){
+function sylView(c,v){
   setTitle('Slabiky');
   const C=S.known.filter(l=>!isVowel(l)), V=S.known.filter(isVowel);
   if(!C.length||!V.length){main.innerHTML='<div class="note">Na slabiky treba aspoň jednu samohlásku a jednu spoluhlásku.</div>';return}
-  c=C.includes(c)?c:C[0];
+  c=C.includes(c)?c:C[0]; v=V.includes(v)?v:null;
   main.innerHTML=`
-    <div class="show" id="sshow"><div class="eq"><span class="c">${cs(c)}</span> + <span class="v">${cs(V[0])}</span> = ${cs(c+V[0])}</div><div class="muted">Ťukni na slabiku</div></div>
-    <div class="sylgrid" style="grid-template-columns:repeat(${Math.min(C.length,5)},1fr);margin-bottom:14px">${C.map(x=>`<button class="key ${x===c?'sel':''}" data-c="${x}">${cs(x)}</button>`).join('')}</div>
-    <div class="sylgrid" style="grid-template-columns:repeat(${Math.min(V.length,5)},1fr)">${V.map(v=>`<button class="key" data-v="${v}">${cs(c+v)}</button>`).join('')}</div>
-    <div class="note">Slabiky čítajte spolu nahlas – appka ich nevyslovuje, lebo hlas v telefóne ich často prečíta zle.</div>`;
-  main.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>sylView(b.dataset.c));
-  main.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{
-    const v=b.dataset.v;
-    $('sshow').innerHTML=`<div class="eq"><span class="c">${cs(c)}</span> + <span class="v">${cs(v)}</span> = ${cs(c+v)}</div>`;
-  });
+    <div class="show" id="sshow">${v
+      ?`<div class="eq pop"><span class="c">${cs(c)}</span> + <span class="v">${cs(v)}</span> = <b class="res">${cs(c+v)}</b></div><div class="muted">Prečítaj slabiku nahlas 🙂</div>`
+      :`<div class="eq"><span class="c">${cs(c)}</span> + <span class="v" style="opacity:.35">?</span></div><div class="muted">Teraz vyber samohlásku 👇</div>`}</div>
+    <div class="steplbl">1. Vyber spoluhlásku</div>
+    <div class="sylgrid" style="grid-template-columns:repeat(${Math.min(C.length,5)},1fr)">${C.map(x=>`<button class="key ${x===c?'sel':''}" data-c="${x}">${cs(x)}</button>`).join('')}</div>
+    <div class="steplbl">2. Vyber samohlásku</div>
+    <div class="sylgrid" style="grid-template-columns:repeat(${Math.min(V.length,5)},1fr)">${V.map(x=>`<button class="key vk ${x===v?'sel':''}" data-v="${x}">${cs(x)}</button>`).join('')}</div>
+    <button class="big-btn alt" id="sg">🎮 Hra: Nájdi slabiku</button>`;
+  main.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>sylView(b.dataset.c,v));
+  main.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>sylView(c,b.dataset.v));
+  $('sg').onclick=sylFindGame;
 }
+// Hra: L + A = ? → dieťa nájde LA medzi podobnými slabikami (bez zvuku)
+function sylFindMaker(){
+  const pool=sylPool(), next=wqueue(pool,x=>['S:'+x]);
+  return()=>{
+    const t=next(), V=S.known.filter(isVowel), C=S.known.filter(l=>!isVowel(l));
+    const c=t.slice(0,t.length-1), v=t.slice(-1);
+    const opts=new Set([t]);
+    if(c.length===1&&c!==v)opts.add(v+c);                 // obrátená: AL
+    shuffle(V).forEach(x=>{if(opts.size<4&&x!==v)opts.add(c+x)});   // LE, LI
+    shuffle(C).forEach(x=>{if(opts.size<4&&x!==c)opts.add(x+v)});   // MA
+    return{label:'🧩 Slabiky',prompt:`<div class="eqbig"><span class="c" style="color:var(--s0)">${cs(c)}</span> + <span style="color:var(--s1)">${cs(v)}</span> = <span class="qm">?</span></div><div class="muted">Nájdi správnu slabiku</div>`,
+      optClass:'txt four',options:shuffle([...opts]).map(o=>({html:esc(cs(o)),correct:o===t})),ok:'',track:['S:'+t]};
+  };
+}
+function sylFindGame(){setTitle('Nájdi slabiku');runQuiz({n:8,again:sylFindGame,make:sylFindMaker()})}
 function sylMaker(){
   const pool=sylPool(), next=wqueue(pool,x=>['S:'+x]);
   return()=>{
@@ -621,72 +649,76 @@ function syllabify(word){
   let out='',prev=0;cuts.forEach(c=>{out+=units.slice(prev,c).join('')+'-';prev=c});
   return out+units.slice(prev).join('');
 }
-function customWords(){return (store.get('cwords','')||'').split(/[\n,;]+/).map(x=>x.trim().replace(/[.!?]/g,'')).filter(x=>x&&!/\s/.test(x))}
-function customSents(){return (store.get('csents','')||'').split(/\n+/).map(x=>x.trim()).filter(Boolean).map(x=>/[.!?]$/.test(x)?x:x+'.')}
-/* Veľká banka slov – appka z nej berie len tie, ktoré dieťa vie prečítať.
-   Keď pribudnú písmenká, automaticky pribudnú aj slová. */
-const BANK=('mlel mleli vieme melie lial liala vlial vliala Ali Alma Lili lila leva mile Amália mávala mával mávali '+
- 'Oto Ola Olívia Ivo Leo Milo Lola Viola volal volala volali malo olovo lov '+
- 'osa sám sami sila seno sem sa si so les lis misa sliva veslo Saša slama sval sólo Samo oslava slovo Silvia salám osol Sima Ivetka '+
- 'tato teta tma Tomi Tina tam tu toto sito list most mesto Ota telo leto svetlo tetu motá '+
- 'pila pole papá Pavol Pavla pomelo lopata lupa pasta lampa pilot Peter pero mapa '+
- 'ulica mamu lamu Emu sovu osu lupa '+
- 'Jana Jano ja je jama máj moja tvoja ty my vy lyže '+
- 'noha Nina Nela meno okno sen len ten tento nemá nie Anna Ivana Milan Elena Natália nos '+
- 'kosa mak kino Katka kakao Lukáš mlieko kapusta '+
- 'deti dedo dub Dana voda dva medveď dúha Adam Ida '+
- 'rak ruža Roman ráno more Mária ryža tráva').split(' ');
-const BANK_EMOJI={medveď:'🐻',dúha:'🌈',rak:'🦀',ruža:'🌹',more:'🌊',ryža:'🍚',pero:'🖊️',voda:'💧',lupa:'🔍',oslava:'🎉',mesto:'🏙️',most:'🌉',lyže:'🎿',sval:'💪',mapa:'🗺️',noha:'🦶',kino:'🎬',mlieko:'🥛',kapusta:'🥬',lampa:'💡',pilot:'🧑‍✈️'};
+function customWords(){const seen=new Set();return (store.get('cwords','')||'').split(/[\s,;]+/).map(x=>x.trim().replace(/[.!?:"„“()]/g,'')).filter(x=>x&&!seen.has(x.toLocaleLowerCase('sk'))&&seen.add(x.toLocaleLowerCase('sk')))}
+function customSents(){return (store.get('csents','')||'').split(/\n+|(?<=[.!?])\s+/).map(x=>x.trim()).filter(Boolean).map(x=>/[.!?]$/.test(x)?x:x+'.')}
+/* Jednoduché slová ako v šlabikári – appka z nich berie len tie,
+   ktoré dieťa vie prečítať. Keď pribudnú písmenká, pribudnú aj slová. */
+const SCHOOL_WORDS=('mama Ema Ela Eva Mila Iva Lea Emil lama lev mimi ale má mám máme máva mávam láme mele vie viem malá malé milá milé mal mala mali '+
+ 'Ivo Oto Ola oko volá malo Leo '+
+ 'sova sám sama seno sila misa les osol slama Samo Saša Sima osa mäso salám '+
+ 'ucho mamu lamu sovu lupa ulica '+
+ 'tato teta Tomi Tina auto tma tam tu sito list most mesto leto '+
+ 'pes pila pole papá Pavol Pavla lopta pero mapa lampa Peter '+
+ 'Jano Jana ja je jama moja vajce '+
+ 'my vy syr ryba '+
+ 'nos noha Nina Nela meno okno sen nie nemá Anna Ivana Milan Elena '+
+ 'koza mak kino Katka kakao kosa mlieko '+
+ 'dom deti dedo voda dub Dana Adam dva '+
+ 'ruka rak ruža more ráno Roman ryža').split(' ');
+const BANK_EMOJI={mama:'👩',lama:'🦙',lev:'🦁',mimi:'👶',oko:'👁️',sova:'🦉',ucho:'👂',auto:'🚗',list:'🍃',pes:'🐕',lopta:'⚽',pero:'🖊️',mapa:'🗺️',lampa:'💡',
+ syr:'🧀',ryba:'🐟',nos:'👃',noha:'🦶',koza:'🐐',mlieko:'🥛',dom:'🏠',voda:'💧',ruka:'✋',rak:'🦀',ruža:'🌹',more:'🌊',ryža:'🍚',kino:'🎬',mesto:'🏙️',most:'🌉',lupa:'🔍',vajce:'🥚'};
 function getWords(){const seen=new Set(),out=[];
-  for(const s of [...customWords().map(w=>syllabify(w)+'|'),...EXTRA_WORDS,...LONG_WORDS,...BANK.map(w=>syllabify(w)+'|'+(BANK_EMOJI[w]||'')),...WORDS[1],...WORDS[2],...WORDS[3]]){
+  for(const s of [...customWords().map(w=>syllabify(w)+'|'),...SCHOOL_WORDS.map(w=>syllabify(w)+'|'+(BANK_EMOJI[w]||'')),...WORDS[1],...WORDS[2],...WORDS[3]]){
     const[w,e]=s.split('|');const key=w.replace(/-/g,'').toLocaleLowerCase('sk');
     if(seen.has(key))continue;seen.add(key);out.push({w,e:e||''});
   }return out}
 /* Generátor viet – skladá stovky rôznych viet, aby sa ich dieťa nenaučilo naspamäť */
-const G_F=['Ema','Ela','Eva','Iva','Mila','Mia','Lea','Vilma','mama','lama','Lili','Alma','Amália','Emília','Lívia','teta','sova','osa','koza','Tina','Saša','Jana','Nina','Nela','Anna','Dana','Mária','Ola','Lola'];
-const G_M=['Emil','lev','Ali','tato','Tomi','Oto','pes','Ivo','Leo','Samo','Milo','Pavol','Jano','Milan','Adam','dedo','Lukáš','Roman','Peter'];
-const G_PRES=['vie','mele','má mimi','má leva','spí','sedí','volá mamu','pije mlieko','papá','má auto','má loptu','má lampu','má mapu','má pero','vidí more','je tu','je tam','je doma','ide domov','pláva','skáče','maľuje','číta','spieva'];
-const G_PAST=[['mala mimi','mal mimi'],['mala leva','mal leva'],['mlela','mlel'],['mávala','mával'],['volala','volal'],['spala','spal'],['sedela','sedel'],['mala auto','mal auto'],['videla more','videl more'],['vliala vodu','vlial vodu'],['mala lampu','mal lampu'],['mala slivu','mal slivu'],['pila mlieko','pil mlieko'],['papala','papal'],['volala mamu','volal mamu']];
-const G_PL=['mali mimi','mleli','mávali','volali','spali','sedeli','papali','vedia','melú'];
+const SCHOOL_SENT=['Mama máva.','Ema máva.','Ela máva.','Eva máva.','Mila máva.','Iva máva.','Lea máva.',
+ 'Mama láme.','Ema láme.','Mila láme.','Eva láme.','Mama mele.','Ema mele.','Ela mele.','Ema vie.','Mama vie.','Mila vie.','Viem!',
+ 'Mama a Ema.','Ela a Mila.','Eva a Ema.','Iva a Lea.','Mama máva Ele.','Ema máva Mile.','Eva máva mame.','Mila máva Eve.','Ela máva Eme.','Lea máva Ive.',
+ 'Ema má mimi.','Mila má malé mimi.','Mama má malé mimi.','Mám malé mimi.','Máme malé mimi.','Ema mala mimi.','Mama mala mimi.',
+ 'Ale mama máva.','Ale Ema láme.','Ema, máva mama!','Mila, mama máva!','Lev máva.','Lama máva.','Ema je malá.','Ela je milá.'];
+// Generátor jednoduchých viet (prítomný čas, ako v šlabikári)
+const G_SUBJ=['Ema','Ela','Eva','Mila','Iva','Lea','mama','Emil','Ivo','Oto','Ola','Samo','Saša','Sima','tato','teta','Tomi','Tina','Jano','Jana',
+ 'Nina','Nela','Anna','Milan','Dana','Adam','Roman','Katka','Peter','Pavol','lev','lama','sova','pes','koza'];
+const G_PRED=[['máva','mávajú'],['láme','lámu'],['mele','melú'],['vie','vedia'],['má mimi','majú mimi'],['má malé mimi','majú malé mimi'],
+ ['spí','spia'],['sedí','sedia'],['papá','papajú'],['volá mamu','volajú mamu'],['má loptu','majú loptu'],['má auto','majú auto'],
+ ['pije mlieko','pijú mlieko'],['pláva','plávajú'],['spieva','spievajú'],['kreslí','kreslia'],['číta','čítajú'],['je tu','sú tu'],['je doma','sú doma']];
 const cap=t=>t.charAt(0).toLocaleUpperCase('sk')+t.slice(1);
 let genCache={key:'',list:[]};
 function genSentences(){
   const key=S.known.join('');
   if(genCache.key===key)return genCache.list;
-  const out=new Set(), F=G_F.filter(canRead), M=G_M.filter(canRead), A=[...F,...M];
-  const pres=G_PRES.filter(canRead), pastF=G_PAST.filter(p=>canRead(p[0])).map(p=>p[0]), pastM=G_PAST.filter(p=>canRead(p[1])).map(p=>p[1]), pl=G_PL.filter(canRead);
-  const add=t=>{if(canRead(t)&&!/^Lev .*leva/.test(t))out.add(t)};
-  A.forEach(x=>{pres.forEach(v=>add(cap(x)+' '+v+'.'))});
-  F.forEach(x=>pastF.forEach(v=>add(cap(x)+' '+v+'.')));
-  M.forEach(x=>pastM.forEach(v=>add(cap(x)+' '+v+'.')));
-  A.forEach(x=>A.forEach(y=>{if(x!==y){add(cap(x)+' a '+y+'.');add(cap(x)+' i '+y+'.');pl.forEach(v=>add(cap(x)+' a '+y+' '+v+'.'))}}));
-  A.forEach(x=>pres.forEach(v=>add('Ale '+x+' '+v+'.')));
-  A.forEach(x=>A.forEach(y=>{if(x!==y&&/^[A-ZÁ-Ž]/.test(x))pres.slice(0,4).forEach(v=>add(cap(x)+', '+y+' '+v+'!'))}));
+  const out=new Set(), A=G_SUBJ.filter(canRead);
+  const add=t=>{if(canRead(t))out.add(t)};
+  A.forEach(x=>G_PRED.forEach(([sg])=>{add(cap(x)+' '+sg+'.');add('Ale '+x+' '+sg+'.')}));
+  A.forEach(x=>A.forEach(y=>{if(x!==y){add(cap(x)+' a '+y+'.');G_PRED.forEach(([,pl])=>add(cap(x)+' a '+y+' '+pl+'.'))}}));
   genCache={key,list:[...out]};
   return genCache.list;
 }
-function getSents(){const seen=new Set(), bad=new Set(badList());return [...customSents(),...EXTRA_SENT,...LONG_SENT,...genSentences()].map(s=>[s,'']).concat(SENTENCES).filter(x=>!bad.has(x[0])&&!seen.has(x[0])&&seen.add(x[0]))}
+function getSents(){const seen=new Set(), bad=new Set(badList());return [...customSents(),...SCHOOL_SENT,...genSentences()].map(s=>[s,'']).concat(SENTENCES).filter(x=>!bad.has(x[0])&&!seen.has(x[0])&&seen.add(x[0]))}
 const CONFLICT={'🏠':'🏡','🏡':'🏠'};
 const ALL_KEYS=LETTERS.map(x=>x[0]);
 
 function exampleFor(L){
-  const l=L.toLocaleLowerCase('sk'), pl=x=>x.w.replace(/-/g,'').toLocaleLowerCase('sk');
-  const ws=getWords().filter(x=>x.e&&canRead(x.w));
-  const f=ws.find(x=>pl(x).startsWith(l))||ws.find(x=>pl(x).includes(l));
-  if(f)return[f.w.replace(/-/g,''),f.e];
-  const d=LETTERS.find(x=>x[0]===L); return d&&d[1]&&canRead(d[1])?[d[1],d[2]]:null;
+  const d=LETTERS.find(x=>x[0]===L); if(d&&d[1])return[d[1],d[2]];
+  const l=L.toLocaleLowerCase('sk'), f=getWords().find(x=>x.w.replace(/-/g,'').toLocaleLowerCase('sk').startsWith(l));
+  return f?[f.w.replace(/-/g,''),f.e]:null;
 }
-function ourLetters(){
-  setTitle('Naše písmenká');
+function ourLetters(tab){
+  tab=tab||'our';
+  setTitle(tab==='all'?'Abeceda':'Naše písmenká');
+  const list=tab==='all'?LETTERS.map(x=>x[0]):S.known;
   main.innerHTML=`
-    <div class="tabs"><button class="tab on">Písmenká</button><button class="tab" id="tF" ${S.known.length<2?'disabled':''}>🎮 Nájdi písmeno</button></div>
+    <div class="tabs"><button class="tab ${tab==='our'?'on':''}" id="tO">Naše</button><button class="tab ${tab==='all'?'on':''}" id="tA">Celá abeceda</button><button class="tab" id="tF" ${S.known.length<2?'disabled':''}>🎮 Nájdi</button></div>
     <div class="show" id="lshow"><div class="muted" style="font-size:20px">Ťukni na písmenko 👇</div></div>
-    <div class="sylgrid" style="grid-template-columns:repeat(3,1fr)">${S.known.map(L=>`<button class="key" style="font-size:44px;padding:18px 0" data-l="${L}">${esc(cs(L))}</button>`).join('')}</div>`;
-  $('tF').onclick=ourLetterGame;
+    <div class="${tab==='all'?'grid':'sylgrid'}" ${tab==='all'?'':'style="grid-template-columns:repeat(3,1fr)"'}>${list.map(L=>`<button class="key ${tab==='all'&&S.known.includes(L)?'known':''}" ${tab==='all'?'':'style="font-size:44px;padding:18px 0"'} data-l="${L}">${esc(cs(L))}</button>`).join('')}</div>
+    ${tab==='all'?'<div class="muted" style="margin-top:8px">Zelené = písmenká, ktoré už poznáme.</div>':''}`;
+  $('tO').onclick=()=>ourLetters('our'); $('tA').onclick=()=>ourLetters('all'); $('tF').onclick=ourLetterGame;
   main.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{
     main.querySelectorAll('.key.sel').forEach(k=>k.classList.remove('sel')); b.classList.add('sel');
     const L=b.dataset.l, ex=exampleFor(L), up=L.charAt(0)+L.slice(1).toLocaleLowerCase('sk');
-    $('lshow').innerHTML=`<div class="lt">${esc(up)}<small>${esc(L.toLocaleLowerCase('sk'))}</small><span class="curl">${esc(up)} ${esc(L.toLocaleLowerCase('sk'))}<span class="curlbl">písané</span></span></div>`+(ex?`<div class="ex">${ex[1]} ${highlight(ex[0],L)}</div>`:'');
+    $('lshow').innerHTML=`<div class="lt">${esc(up)}<small>${esc(L.toLocaleLowerCase('sk'))}</small><span class="curl">${esc(up)} ${esc(L.toLocaleLowerCase('sk'))}<span class="curlbl">písané</span></span></div>`+(ex?`<div class="ex">${ex[1]||''} ${highlight(ex[0],L)}</div>`:'');
     sayLetter(L,ex?ex[0]:'');
     window.scrollTo({top:0,behavior:'smooth'});
   });
@@ -698,11 +730,13 @@ function letterMaker(){
     const t=next();
     const opts=shuffle([t,...shuffle(S.known.filter(x=>x!==t)).slice(0,3)]);
     let spk,ok,hint;
-    if(isVowel(t)){const l=t.toLocaleLowerCase('sk');spk='Nájdi písmeno '+l+'.';ok='';hint='Nájdi písmeno'}
+    const ab0=LETTERS.find(x=>x[0]===t);
+    if(isVowel(t)&&!(ab0&&ab0[2])){const l=t.toLocaleLowerCase('sk');spk='Nájdi písmeno '+l+'.';ok='';hint='Nájdi písmeno'}
     else{
       const st=w=>w.replace(/-/g,'').toLocaleLowerCase('sk').startsWith(t.toLocaleLowerCase('sk'));
       const cand=getWords().filter(x=>canRead(x.w)&&st(x.w));
-      const pick=cand.length?rand(cand.filter(x=>x.e).length?cand.filter(x=>x.e):cand):null;
+      const ab=LETTERS.find(x=>x[0]===t);
+      const pick=ab&&ab[1]&&ab[2]?{w:ab[1],e:ab[2]}:cand.length?rand(cand.filter(x=>x.e).length?cand.filter(x=>x.e):cand):null;
       const w=pick?pick.w.replace(/-/g,''):(t+(S.known.find(isVowel)||'a')).toLocaleLowerCase('sk');
       spk='Ktorým písmenkom začína '+w+'?';ok=w;
       hint=pick&&pick.e?`Čím začína <span style="font-size:54px;vertical-align:middle">${pick.e}</span>?`:`Čím začína <b>${esc(csw(w))}</b>?`;
@@ -774,38 +808,37 @@ function wordsMenu2(){
   setTitle('Slová');
   const n=getWords().filter(x=>canRead(x.w)).length, sp=sylPool();
   main.innerHTML=`<div class="levels">
-     <button class="level c3" id="wReal" ${n?'':'disabled'}><span style="font-size:40px">🖼️</span><div>Skutočné slová<span>${n} slov – vždy v inom poradí</span></div></button>
-     <button class="level c2" id="wFake" ${sp.length?'':'disabled'}><span style="font-size:40px">🎲</span><div>Vymyslené slová<span>napr. ${sp.length?pseudoWord().replace(/-/g,'').toLocaleUpperCase('sk'):'—'} – čítaj po slabikách</span></div></button>
+     <button class="level c3" id="wReal" ${n?'':'disabled'}><span style="font-size:40px">🖼️</span><div>Slová<span>${n} slov – vždy v inom poradí</span></div></button>
+     ${customWords().length||customSents().length?`<button class="level c5" id="wOur"><span style="font-size:40px">⭐</span><div>Naše slová zo šlabikára<span>${customWords().filter(canRead).length} slov, ${customSents().filter(canRead).length} viet</span></div></button>`:''}
+     <button class="level c2" id="wFake" ${sp.length?'':'disabled'}><span style="font-size:40px">🧩</span><div>Slabiky za sebou<span>${sp.length?sylRow().map(cs).join(' · '):'—'}</span></div></button>
    </div>
-   <div class="note">Vymyslené slová nemajú význam, takže sa nedajú uhádnuť ani naučiť naspamäť – dieťa ich musí naozaj prečítať po slabikách.</div>`;
-  $('wReal').onclick=ourWords; $('wFake').onclick=pseudoGame;
+   <div class="note">Slabiky za sebou sú ako slabikové riadky v šlabikári: dieťa ich číta jednu po druhej nahlas.</div>`;
+  $('wReal').onclick=ourWords; $('wFake').onclick=pseudoGame; if($('wOur'))$('wOur').onclick=customGame;
 }
-function pseudoWord(){
-  const sp=sylPool(), V=S.known.filter(isVowel), C=S.known.filter(l=>!isVowel(l));
-  const n=Math.random()<.55?2:3; const parts=[];
-  for(let i=0;i<n;i++)parts.push(rand(sp).toLocaleLowerCase('sk'));
-  if(C.length&&Math.random()<.3)parts[n-1]+=rand(C).toLocaleLowerCase('sk');
-  if(V.length&&Math.random()<.15)parts.unshift(rand(V).toLocaleLowerCase('sk'));
-  return parts.join('-');
+// slabikový riadok: buď jedna spoluhláska so samohláskami (ma me mi), alebo zmiešané slabiky (la me vi)
+function sylRow(){
+  const C=S.known.filter(l=>!isVowel(l)&&l.length===1), Vs=S.known.filter(l=>'AEIOUY'.includes(l)), Vl=S.known.filter(l=>'ÁÉÍÓÚÝ'.includes(l));
+  if(!C.length||!(Vs.length+Vl.length))return[];
+  const V=Vs.length?Vs:Vl;
+  if(Math.random()<.5){const c=rand(C);return [...V,...(Vl.length&&Math.random()<.4?[rand(Vl)]:[])].map(v=>c+v)}
+  return Array.from({length:4},()=>rand(C)+rand(Math.random()<.25&&Vl.length?Vl:V));
 }
 function pseudoMaker(){
-  const real=new Set(getWords().map(x=>x.w.replace(/-/g,'').toLocaleLowerCase('sk')));
   let last='';
   return()=>{
-    // vymyslené slová skladá častejšie zo slabík, ktoré dieťaťu nejdú
-    let w,t=0,best=null,bw=-1;
-    for(let k=0;k<6;k++){do{w=pseudoWord()}while((real.has(w.replace(/-/g,''))||w===last)&&++t<30);
-      const wt=weight(w.split('-').map(x=>'S:'+x.toLocaleUpperCase('sk')))*Math.random();if(wt>bw){bw=wt;best=w}}
-    w=best;last=w;
-    const plain=w.replace(/-/g,''), parts=w.split('-');
-    return{label:'🎲 Vymyslené slovo',prompt:`<div class="muted" style="font-size:18px;margin-bottom:6px">Prečítaj po slabikách:</div><div class="word">${wordHTML(w)}</div>`,
-      read:true,ok:'',track:parts.filter(x=>x.length===2).map(x=>'S:'+x.toLocaleUpperCase('sk')),
-      bind(){}};
+    let r,t=0; do{r=sylRow()}while(r.join()===last&&++t<20); last=r.join();
+    return{label:'🧩 Slabiky za sebou',prompt:`<div class="muted" style="font-size:18px;margin-bottom:10px">Prečítaj slabiky za sebou:</div>
+      <div class="sylrow">${r.map((x,i)=>`<span class="syl s${i%2}">${esc(cs(x))}</span>`).join('')}</div>`,
+      read:true,ok:'',track:r.map(x=>'S:'+x.toLocaleUpperCase('sk')),bind(){}};
   };
 }
-function pseudoGame(){setTitle('Vymyslené slová');runQuiz({n:10,again:pseudoGame,make:pseudoMaker()})}
-function wordMaker(){
-  const pool=getWords().filter(x=>canRead(x.w)), pics=pool.filter(x=>x.e);
+function pseudoGame(){setTitle('Slabiky za sebou');runQuiz({n:8,again:pseudoGame,make:pseudoMaker()})}
+function wordMaker(onlyCustom){
+  const cw=new Set(customWords().map(x=>x.toLocaleLowerCase('sk')));
+  const isC=x=>cw.has(x.w.replace(/-/g,'').toLocaleLowerCase('sk'));
+  let pool=getWords().filter(x=>canRead(x.w)); const pics=pool.filter(x=>x.e);
+  // naše slová zo šlabikára prídu častejšie (alebo len ony)
+  pool=onlyCustom?pool.filter(isC):pool.concat(pool.filter(isC),pool.filter(isC));
   const next=wqueue(pool,x=>['W:'+x.w.replace(/-/g,'').toLocaleLowerCase('sk')]);
   return()=>{
     const t=next(), plain=t.w.replace(/-/g,''), parts=t.w.split('-'), tr=['W:'+plain.toLocaleLowerCase('sk')];
@@ -822,9 +855,18 @@ function wordMaker(){
       read:true,ok:plain,track:tr,bind};
   };
 }
+function customGame(){
+  setTitle('⭐ Naše slová');
+  const w=customWords().filter(canRead).length, sn=customSents().filter(canRead).length;
+  if(!w&&!sn){main.innerHTML='<div class="note">Zatiaľ tu nie je žiadne vaše slovo, ktoré dieťa vie prečítať. Doplňte ich dole na úvodnej obrazovke v časti „Naše slová zo šlabikára“.</div>';return}
+  const m=[];if(w)m.push(wordMaker(true));if(sn)m.push(sentMaker(true));
+  runQuiz({n:Math.min(10,Math.max(4,w+sn)),again:customGame,make:mixMaker(m)});
+}
 function ourWords(){setTitle('Naše slová');runQuiz({n:10,again:ourWords,make:wordMaker()})}
-function sentMaker(){
-  const pool=getSents().filter(x=>canRead(x[0])), pics=pool.filter(x=>x[1]);
+function sentMaker(onlyCustom){
+  const cs3=new Set(customSents());
+  let pool=getSents().filter(x=>canRead(x[0])); const pics=pool.filter(x=>x[1]);
+  pool=onlyCustom?pool.filter(x=>cs3.has(x[0])):pool.concat(pool.filter(x=>cs3.has(x[0])),pool.filter(x=>cs3.has(x[0])));
   const next=queue(pool);
   return()=>{
     const [s,e]=next();
@@ -1134,34 +1176,24 @@ function owlHome(){
 /* =====================================================================
    PRÍBEHY S OTÁZKOU + PRAVDA/NEPRAVDA
    ===================================================================== */
-const ST_PRED=[['mala','mal','mimi'],['mala','mal','leva'],['mlela','mlel',''],['mávala','mával',''],['volala','volal','mamu'],['spala','spal',''],
- ['mala','mal','auto'],['videla','videl','more'],['pila','pil','mlieko'],['papala','papal',''],['sedela','sedel',''],['mala','mal','lampu'],
- ['mala','mal','pero'],['mala','mal','mapu'],['mala','mal','loptu'],['mala','mal','psa'],['mala','mal','mačku'],['spievala','spieval',''],['kreslila','kreslil','']];
 function storyParts(){
-  const F=G_F.filter(canRead).map(n=>({n,f:true})), M=G_M.filter(canRead).map(n=>({n,f:false})), A=[...F,...M];
-  const P=ST_PRED.filter(p=>A.some(x=>canRead((x.f?p[0]:p[1])+' '+p[2])));
+  const A=G_SUBJ.filter(canRead), P=G_PRED.filter(p=>canRead(p[0]));
   return{A,P};
 }
-const canStory=()=>{const{A,P}=storyParts();return A.length>=2&&P.length>=2&&canRead('mimi')};
-function predTxt(p,f){return (f?p[0]:p[1])+(p[2]?' '+p[2]:'')}
+const canStory=()=>{const{A,P}=storyParts();return A.length>=2&&P.length>=2};
 function storyMaker(){
   return()=>{
     const{A,P}=storyParts();
-    let X,Y,pX,pY,t=0;
-    do{[X,Y]=shuffle(A);[pX,pY]=shuffle(P);t++}
-    while(t<60&&!(canRead(predTxt(pX,X.f))&&canRead(predTxt(pY,Y.f))&&predTxt(pX,true)!==predTxt(pY,true)&&!(X.n==='lev'&&pX[2]==='leva')&&!(Y.n==='lev'&&pY[2]==='leva')));
-    const lines=[cap(X.n)+' '+predTxt(pX,X.f)+'.',cap(Y.n)+' '+predTxt(pY,Y.f)+'.'];
-    // tretia veta – obaja spolu
-    const pl=P.filter(p=>p!==pX&&p!==pY&&canRead(p[0].slice(0,-1)+'i'+(p[2]?' '+p[2]:'')));
+    let X,Y,pX,pY,lines,t=0;
+    do{[X,Y]=shuffle(A);[pX,pY]=shuffle(P);lines=[cap(X)+' '+pX[0]+'.',cap(Y)+' '+pY[0]+'.'];t++}
+    while(t<40&&lines.some(isBad));
+    const pl=P.filter(p=>p!==pX&&p!==pY&&canRead(p[1]));
     let pZ=null;
-    if(pl.length&&Math.random()<.6){pZ=rand(pl);lines.push(cap(X.n)+' a '+Y.n+' '+pZ[0].slice(0,-1)+'i'+(pZ[2]?' '+pZ[2]:'')+'.')}
+    if(pl.length&&Math.random()<.5){pZ=rand(pl);lines.push(cap(X)+' a '+Y+' '+pZ[1]+'.')}
     const qs=[[X,pX,true],[Y,pY,true],[X,pY,false],[Y,pX,false]];
     if(pZ)qs.push([X,pZ,true],[Y,pZ,true]);
-    if(lines.some(isBad)&&(storyMaker._r=(storyMaker._r||0)+1)<25)return storyMaker()();
-    storyMaker._r=0;
-    const okq=qs.filter(([who,p])=>canRead(predTxt(p,who.f)));
-    const[who,p,ans]=rand(okq);
-    const verb=who.f?p[0]:p[1], qtxt=cap(verb)+' '+who.n+(p[2]?' '+p[2]:'')+'?';
+    const[who,p,ans]=rand(qs);
+    const w=p[0].split(' '), qtxt=cap(w[0])+' '+who+(w.length>1?' '+w.slice(1).join(' '):'')+'?';
     const all=lines.join(' ')+' '+qtxt;
     const shown=t=>S.upper&&!S.cursive?t.toLocaleUpperCase('sk'):t;
     return{label:'📚 Príbeh',
@@ -1353,7 +1385,7 @@ function readingMakers(){
   const m=[];
   if(getWords().filter(x=>canRead(x.w)).length)m.push(wordMaker());
   if(getSents().filter(x=>canRead(x[0])).length)m.push(sentMaker());
-  if(sylPool().length)m.push(pseudoMaker())
+  if(sylPool().length){m.push(pseudoMaker());m.push(sylFindMaker())}
   if(canStory())m.push(storyMaker());
   if(S.known.length>=2)m.push(letterMaker());
   return m;
@@ -1367,7 +1399,7 @@ function dailyGame(){
 }
 function practiceWeak(){
   setTitle('🎯 Precvičovanie');
-  const m=[]; if(S.known.length>=2)m.push(letterMaker()); if(sylPool().length)m.push(pseudoMaker())
+  const m=[]; if(S.known.length>=2)m.push(letterMaker()); if(sylPool().length){m.push(pseudoMaker());m.push(sylFindMaker())}
   if(getWords().filter(x=>canRead(x.w)).length)m.push(wordMaker());
   if(!m.length){home();return}
   runQuiz({n:10,again:practiceWeak,make:mixMaker(m)});
@@ -1586,7 +1618,119 @@ const PICS=[
    c.beginPath();c.arc(x-s*.06,y-s*.02,s*.022,0,7);c.arc(x+s*.06,y-s*.02,s*.022,0,7);c.fill();c.beginPath();c.arc(x,y+s*.03,s*.07,.2*Math.PI,.8*Math.PI);c.stroke()}}
 ];
 let colorIdx=0;
-function drawColor(ctx){
+/* ---------- Karty pre väčšie deti: mandala, maľovanie podľa príkladov, spoj bodky, bludisko ---------- */
+function drawMandala(ctx){
+  sheetBase(ctx,'Vymaľuj mandalu');
+  const cx=CW/2, cy=930; ctx.save();ctx.strokeStyle='#222';ctx.lineWidth=4;ctx.lineJoin='round';
+  const rings=[[0,70],[70,160],[160,260],[260,370],[370,480],[480,560]];
+  const R0=(a,r)=>[cx+Math.cos(a)*r,cy+Math.sin(a)*r];
+  ctx.beginPath();ctx.arc(cx,cy,70,0,7);ctx.stroke();
+  ctx.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4;ctx.moveTo(cx,cy);ctx.lineTo(...R0(a,70))}ctx.stroke();
+  rings.slice(1).forEach(([r1,r2],k)=>{
+    const n=[8,12,16,20,24][k]*(Math.random()<.5?1:1), type=Math.floor(Math.random()*4), mid=(r1+r2)/2, w=(r2-r1);
+    ctx.beginPath();ctx.arc(cx,cy,r2,0,7);ctx.stroke();
+    for(let i=0;i<n;i++){
+      const a=i*2*Math.PI/n, a2=(i+1)*2*Math.PI/n, am=(a+a2)/2;
+      ctx.beginPath();
+      if(type===0){ctx.save();ctx.translate(...R0(am,mid));ctx.rotate(am);ctx.ellipse(0,0,w*.42,Math.min(w*.3,mid*Math.PI/n*.9),0,0,7);ctx.restore()}
+      else if(type===1){ctx.moveTo(...R0(a,r1));ctx.lineTo(...R0(am,r2));ctx.lineTo(...R0(a2,r1))}
+      else if(type===2){ctx.moveTo(...R0(a,r2));ctx.quadraticCurveTo(...R0(am,r1-w*.2),...R0(a2,r2))}
+      else{ctx.save();ctx.translate(...R0(am,mid));ctx.arc(0,0,Math.min(w*.3,mid*Math.PI/n*.8),0,7);ctx.restore()}
+      ctx.stroke();
+      if(type!==3){ctx.beginPath();ctx.moveTo(...R0(a,r1));ctx.lineTo(...R0(a,r1+w*.18));ctx.stroke()}
+    }
+  });
+  ctx.restore();
+}
+// Maľovanie podľa príkladov: vypočítaj príklad v štvorčeku a vymaľuj ho farbou z legendy → objaví sa obrázok
+const PIXEL=[
+ {n:'Srdce',m:['............','..RR....RR..','.RRRR..RRRR.','RRRRRRRRRRRR','RRRRRRRRRRRR','RRRRRRRRRRRR','.RRRRRRRRRR.','..RRRRRRRR..','...RRRRRR...','....RRRR....','.....RR.....','GGGGGGGGGGGG']},
+ {n:'Domček',m:['.....RR.....','....RRRR....','...RRRRRR...','..RRRRRRRR..','.RRRRRRRRRR.','..YYYYYYYY..','..YBBYYBBY..','..YBBYYBBY..','..YYYYYYYY..','..YYYDDYYY..','GGYYYDDYYYGG','GGGGGGGGGGGG']},
+ {n:'Hviezda',m:['.....YY.....','.....YY.....','....YYYY....','YYYYYYYYYYYY','.YYYYYYYYYY.','..YYYYYYYY..','...YYYYYY...','...YYYYYY...','..YYY..YYY..','..YY....YY..','.YY......YY.','............']},
+ {n:'Rybka',m:['............','............','...OOOO.....','..OOOOOO..O.','.OKOOOOOOOO.','.OOOOOOOOOO.','..OOOOOO..O.','...OOOO.....','............','.....G......','..G..G...G..','GGGGGGGGGGGG']},
+ {n:'Strom',m:['....GGGG....','...GGGGGG...','..GGGRGGGG..','.GGGGGGGRGG.','.GRGGGGGGGG.','..GGGGRGGG..','...GGGGGG...','.....DD.....','.....DD.....','.....DD.....','....DDDD....','GGGGGGGGGGGG']}
+];
+const PCOL={'.':['svetlomodrá','#bfdbfe'],R:['červená','#ef4444'],G:['zelená','#22c55e'],Y:['žltá','#facc15'],B:['modrá','#3b82f6'],D:['hnedá','#92400e'],O:['oranžová','#fb923c'],K:['čierna','#111']};
+let cbnIdx=0;
+function drawCBN(ctx){
+  const pic=PIXEL[cbnIdx%PIXEL.length]; sheetBase(ctx,'Vypočítaj a vymaľuj');
+  const band=curBand(), cross=store.get('mcross',false);
+  const keys=[...new Set(pic.m.join('').split(''))];
+  // každej farbe pridelíme iné číslo (výsledok)
+  const lo=Math.max(band[0],1), hi=Math.max(band[1],keys.length+1);
+  const nums=shuffle(Array.from({length:hi-lo+1},(_,i)=>lo+i)).slice(0,keys.length).sort((a,b)=>a-b);
+  const map={};keys.forEach((k,i)=>map[k]=nums[i]);
+  const cs2=88, x0=(CW-cs2*12)/2, y0=280;
+  ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
+  pic.m.forEach((row,r)=>row.split('').forEach((ch,c)=>{
+    const res=map[ch]; let a,b,op,t=0;
+    do{op=Math.random()<.5?'+':'−';
+      if(op==='+'){a=ri(Math.max(0,res-(band[1]>10?10:res)),res);b=res-a}else{b=ri(0,Math.min(band[1]>10?10:5,band[1]-res));a=res+b}
+    }while((a>band[1]||b<0)&&++t<20);
+    const x=x0+c*cs2, y=y0+r*cs2;
+    ctx.lineWidth=2;ctx.strokeStyle='#555';ctx.strokeRect(x,y,cs2,cs2);
+    ctx.fillStyle='#222';ctx.font=`700 ${res>=10||a>=10?22:26}px ${FONT}`;ctx.fillText(`${a}${op}${b}`,x+cs2/2,y+cs2/2);
+  }));
+  ctx.textAlign='left';ctx.textBaseline='alphabetic';
+  const ly=y0+12*cs2+70; ctx.font=`700 36px ${FONT}`;ctx.fillStyle='#2B2D42';ctx.fillText('Farby:',x0,ly);
+  keys.forEach((k,i)=>{const col=i%3,row=Math.floor(i/3),x=x0+col*360,y=ly+50+row*64;
+    ctx.fillStyle=PCOL[k][1];ctx.fillRect(x,y-36,46,46);ctx.strokeStyle='#222';ctx.lineWidth=2;ctx.strokeRect(x,y-36,46,46);
+    ctx.fillStyle='#2B2D42';ctx.font=`700 34px ${FONT}`;ctx.fillText(`${map[k]} = ${PCOL[k][0]}`,x+60,y)});
+  ctx.restore();
+}
+// Spoj bodky
+const DOT_SHAPES=[
+ {n:'hviezda',p:(()=>{const a=[];for(let i=0;i<10;i++){const r=i%2?.2:.46,t=-Math.PI/2+i*Math.PI/5;a.push([Math.cos(t)*r,Math.sin(t)*r])}return a})()},
+ {n:'domček',p:[[-.35,.4],[-.35,-.05],[0,-.4],[.35,-.05],[.35,.4],[.1,.4],[.1,.15],[-.1,.15],[-.1,.4]]},
+ {n:'rybka',p:[[-.45,0],[-.25,-.2],[0,-.25],[.2,-.15],[.3,-.06],[.46,-.2],[.46,.2],[.3,.06],[.2,.15],[0,.25],[-.25,.2]]},
+ {n:'srdce',p:(()=>{const a=[];for(let i=0;i<16;i++){const t=i/16*2*Math.PI;a.push([16*Math.sin(t)**3/36,-(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))/36])}return a})()},
+ {n:'raketa',p:[[0,-.48],[.12,-.3],[.12,.2],[.25,.38],[.12,.33],[.06,.42],[-.06,.42],[-.12,.33],[-.25,.38],[-.12,.2],[-.12,-.3]]}
+];
+let dotIdx=0;
+function drawDots(ctx){
+  const sh=DOT_SHAPES[dotIdx%DOT_SHAPES.length], target=Math.min(30,Math.max(15,curBand()[1]>=20?30:20));
+  // rovnomerne rozložiť body po obvode tvaru
+  const P=sh.p.concat([sh.p[0]]), seg=[];let L=0;
+  for(let i=0;i<P.length-1;i++){const d=Math.hypot(P[i+1][0]-P[i][0],P[i+1][1]-P[i][1]);seg.push(d);L+=d}
+  const pts=[];sh.p.forEach(q=>pts.push(q));
+  const extra=Math.max(0,target-sh.p.length); const out=[];
+  for(let i=0;i<P.length-1;i++){out.push(P[i]);const k=Math.round(extra*seg[i]/L);for(let j=1;j<=k;j++){const f=j/(k+1);out.push([P[i][0]+(P[i+1][0]-P[i][0])*f,P[i][1]+(P[i+1][1]-P[i][1])*f])}}
+  sheetBase(ctx,'Spoj bodky');
+  ctx.save();ctx.font=`400 34px ${FONT}`;ctx.fillStyle='#555';ctx.fillText(`Spoj bodky od 1 po ${out.length} a potom obrázok vymaľuj.`,80,270);
+  const cx=CW/2, cy=960, sc=1050;
+  out.forEach(([x,y],i)=>{const X=cx+x*sc,Y=cy+y*sc;
+    ctx.beginPath();ctx.arc(X,Y,9,0,7);ctx.fillStyle='#222';ctx.fill();
+    ctx.font=`700 30px ${FONT}`;const ox=x>=0?16:-16;ctx.textAlign=x>=0?'left':'right';ctx.fillText(String(i+1),X+ox,Y-12)});
+  ctx.restore();
+}
+// Bludisko
+let mazeHard=false;
+function drawMaze(ctx){
+  sheetBase(ctx,'Bludisko');
+  const cols=mazeHard?16:11, rows=mazeHard?21:14, cs2=Math.floor(Math.min(1080/cols,1300/rows)), x0=(CW-cols*cs2)/2, y0=330;
+  const vis=Array.from({length:rows},()=>Array(cols).fill(false));
+  const walls=Array.from({length:rows},()=>Array.from({length:cols},()=>[true,true,true,true])); // hore,vpravo,dole,vľavo
+  const st=[[0,0]];vis[0][0]=true;
+  while(st.length){const[r,c]=st[st.length-1];
+    const nb=[[r-1,c,0,2],[r,c+1,1,3],[r+1,c,2,0],[r,c-1,3,1]].filter(([y,x])=>y>=0&&x>=0&&y<rows&&x<cols&&!vis[y][x]);
+    if(!nb.length){st.pop();continue}
+    const[y,x,w1,w2]=rand(nb);walls[r][c][w1]=false;walls[y][x][w2]=false;vis[y][x]=true;st.push([y,x]);}
+  walls[0][0][3]=false;walls[rows-1][cols-1][1]=false;
+  ctx.save();ctx.strokeStyle='#222';ctx.lineWidth=5;ctx.lineCap='round';ctx.beginPath();
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const x=x0+c*cs2,y=y0+r*cs2,w=walls[r][c];
+    if(w[0]){ctx.moveTo(x,y);ctx.lineTo(x+cs2,y)} if(w[3]){ctx.moveTo(x,y);ctx.lineTo(x,y+cs2)}
+    if(r===rows-1&&w[2]){ctx.moveTo(x,y+cs2);ctx.lineTo(x+cs2,y+cs2)} if(c===cols-1&&w[1]){ctx.moveTo(x+cs2,y);ctx.lineTo(x+cs2,y+cs2)}}
+  ctx.stroke();
+  ctx.font=`${Math.round(cs2*.8)}px ${FONT}`;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('🐭',x0-cs2*.6,y0+cs2/2);ctx.fillText('🧀',x0+cols*cs2+cs2*.6,y0+(rows-.5)*cs2);
+  ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.font=`400 34px ${FONT}`;ctx.fillStyle='#555';ctx.fillText('Pomôž myške nájsť cestu k syru.',80,280);
+  ctx.restore();
+}
+function drawColor(ctx,opt){
+  if(opt==='mandala')return drawMandala(ctx);
+  if(opt==='cbn')return drawCBN(ctx);
+  if(opt==='dots')return drawDots(ctx);
+  if(opt==='maze')return drawMaze(ctx);
   const p=PICS[colorIdx%PICS.length];
   sheetBase(ctx,'Vymaľuj');
   ctx.save();ctx.strokeStyle='#222';ctx.fillStyle='#222';ctx.lineWidth=9;ctx.lineJoin='round';ctx.lineCap='round';
@@ -1646,28 +1790,32 @@ function drawDiploma(ctx){
 async function renderSheet(kind,opt){
   try{await Promise.all([document.fonts.load(`700 100px Andika`),document.fonts.load(`400 100px "Playwrite SK"`)])}catch(e){}
   const cv=document.createElement('canvas');cv.width=CW;cv.height=CH;const ctx=cv.getContext('2d');
-  if(kind==='write')drawWrite(ctx,opt);else if(kind==='color')drawColor(ctx);else if(kind==='diploma')drawDiploma(ctx);else drawMath(ctx);
+  if(kind==='write')drawWrite(ctx,opt);else if(kind==='color')drawColor(ctx,opt);else if(kind==='diploma')drawDiploma(ctx);else drawMath(ctx);
   return cv;
 }
 async function cardsView(kind,opt){
   const titles={write:'Písanie',color:'Maľovanie',math:'Počítanie',diploma:'Diplom'};
   setTitle('Karty: '+titles[kind]);
-  opt=opt||(kind==='write'?'letters':'');
+  opt=opt||(kind==='write'?'letters':kind==='color'?'pics':'');
   main.innerHTML=`
     ${kind==='write'?(()=>{const cur=opt.startsWith('c'),m=cur?opt.slice(1):opt;return `<div class="tabs"><button class="tab ${m==='letters'?'on':''}" data-o="${cur?'c':''}letters">Písmenká</button><button class="tab ${m==='words'?'on':''}" data-o="${cur?'c':''}words">Slová</button></div>
       <div class="tabs"><button class="tab ${!cur?'on':''}" data-o="${m}">Tlačené</button><button class="tab ${cur?'on':''}" data-o="c${m}">✍️ Písané</button></div>`})():''}
+    ${kind==='color'?`<div class="chips" style="margin-bottom:10px">${[['pics','🖍️ Obrázky'],['mandala','🌸 Mandala'],['cbn','🔢 Vypočítaj a vymaľuj'],['dots','✏️ Spoj bodky'],['maze','🐭 Bludisko']].map(([k,l])=>`<button class="chip ${opt===k?'on':''}" data-o="${k}" style="min-width:0;padding:8px 12px;font-size:15px">${l}</button>`).join('')}</div>
+      ${opt==='maze'?`<div class="tabs"><button class="tab ${!mazeHard?'on':''}" id="mzE">Ľahké</button><button class="tab ${mazeHard?'on':''}" id="mzH">Ťažké</button></div>`:''}
+      ${opt==='cbn'?'<div class="muted" style="margin-bottom:8px">Príklady sú podľa rozsahu čísel nastaveného v Počítaní.</div>':''}`:''}
     <div id="sheetBox" class="muted" style="text-align:center;padding:40px">Pripravujem kartu…</div>
     <div style="display:flex;gap:8px">
-      <button class="big-btn alt" id="kNew" style="flex:1">${kind==='color'?'➡ Ďalší obrázok':kind==='diploma'?'🔄 Iná farba':'🔄 Iná karta'}</button>
+      <button class="big-btn alt" id="kNew" style="flex:1">${kind==='color'?(opt==='pics'||opt==='cbn'||opt==='dots'?'➡ Ďalší obrázok':'🔄 Iná'):kind==='diploma'?'🔄 Iná farba':'🔄 Iná karta'}</button>
       <button class="big-btn" id="kDl" style="flex:1">⬇ Stiahnuť</button>
     </div>
     <div class="muted" id="kMsg" style="text-align:center;margin-top:8px"></div>`;
-  if(kind==='write')main.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>cardsView('write',b.dataset.o));
+  if(kind==='write'||kind==='color')main.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>cardsView(kind,b.dataset.o));
+  if($('mzE')){$('mzE').onclick=()=>{mazeHard=false;cardsView('color','maze')};$('mzH').onclick=()=>{mazeHard=true;cardsView('color','maze')}}
   const cv=await renderSheet(kind,opt);
   const url=cv.toDataURL('image/png');
   $('sheetBox').innerHTML=`<img class="sheet" src="${url}" alt="Karta na tlač">`;$('sheetBox').style.padding='0';
-  $('kNew').onclick=()=>{if(kind==='color')colorIdx++;if(kind==='diploma')dipCol++;cardsView(kind,opt)};
-  const names={diploma:'diplom',write:(opt.endsWith('words')?'obtahuj-slova':'obtahuj-pismenka')+(opt.startsWith('c')?'-pisane':''),color:'vymaluj',math:'pocitaj'};
+  $('kNew').onclick=()=>{if(kind==='color'){if(opt==='pics')colorIdx++;if(opt==='cbn')cbnIdx++;if(opt==='dots')dotIdx++}if(kind==='diploma')dipCol++;cardsView(kind,opt)};
+  const names={diploma:'diplom',write:(opt.endsWith('words')?'obtahuj-slova':'obtahuj-pismenka')+(opt.startsWith('c')?'-pisane':''),color:{pics:'vymaluj',mandala:'mandala',cbn:'vypocitaj-a-vymaluj',dots:'spoj-bodky',maze:'bludisko'}[opt]||'vymaluj',math:'pocitaj'};
   $('kDl').onclick=()=>{
     if(!dlApi){ // samostatný web (napr. GitHub Pages): bežné stiahnutie
       cv.toBlob(b=>{try{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=names[kind]+'.png';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000)}catch(e){}

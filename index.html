@@ -9,6 +9,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Zvedavko">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23FFB703'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle'%3E🦉%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -192,6 +194,9 @@
   .week{display:flex;justify-content:space-between;align-items:flex-end;height:110px;margin:14px 0 6px}
   .week>div{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1}
   .week .wb{width:22px;border-radius:6px}
+  .flag{margin-top:8px;background:none;color:var(--muted);font-size:13px;text-decoration:underline;padding:4px}
+  .flag:disabled{text-decoration:none;color:var(--green)}
+  .note.good{background:#dcfce7}
   .note.warn{background:#FFE1DC}
   select{font-family:inherit;font-size:15px;padding:6px;border-radius:10px;border:2px solid #e6d9c2;max-width:200px}
   .note{background:#FFF1CC;border-radius:14px;padding:10px 12px;font-size:15px;margin-top:10px}
@@ -260,7 +265,7 @@ function updCloudNote(){document.querySelectorAll('.cloudNote').forEach(n=>n.inn
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')cloudSave(true)});
 
 // Úložisko: nastavenia zariadenia sú spoločné, ostatné má každé dieťa (profil) zvlášť
-const GLOBAL_KEYS=['voice','vok','vbad','profiles','cur','sound','slow'];
+const GLOBAL_KEYS=['voice','vok','vbad','profiles','cur','sound','slow','bad'];
 const PROFILE_KEYS=['name','upper','cursive','split','stars','known','girl','mmax','mpics','mband','mcross','cwords','csents','onboarded','stats','days','act','flash'];
 function curProf(){return +(LS.get('citanie_cur')||0)||0}
 const keyFor=(k,id)=>GLOBAL_KEYS.includes(k)||id===0?'citanie_'+k:'citanie_p'+id+'_'+k;
@@ -473,6 +478,7 @@ function home(){
        <button class="card c2" id="hProf2" style="padding:12px 4px;font-size:16px"><span class="big" style="font-size:30px">👥</span>Deti a prenos</button>
      </div>
      <h3>Písmenká, ktoré už poznáme</h3>
+     ${nextLetterHTML()}
      <div class="muted">Slová, vety aj slabiky v appke sú len z týchto písmen. Keď sa naučíte nové, ťuknite naň.</div>
      <div class="chips">${ALL_KEYS.map(L=>`<button class="chip ${S.known.includes(L)?'on':''}" data-l="${L}">${L}</button>`).join('')}</div>
    </div>
@@ -498,11 +504,12 @@ function home(){
      <div class="note">Tip: nech dieťa číta nahlas samo. Tlačidlo 🔊 je na kontrolu alebo nápovedu.</div>
    </div>`;
   main.querySelectorAll('[data-card]').forEach(b=>b.onclick=()=>cardsView(b.dataset.card));
+  main.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{const L=b.dataset.add;S.known=ALL_KEYS.filter(x=>x===L||S.known.includes(x));save('known');genCache.key='';const y=window.scrollY;home();window.scrollTo(0,y);owl('Nové písmenko '+L+'! 🎉')});
   $('hProf2').onclick=profilesView; $('hD').onclick=dailyGame; $('hT').onclick=storyGame; $('hG').onclick=gamesMenu; $('hProf').onclick=profilesView;
   if($('hOv'))$('hOv').onclick=overview;
   $('hL').onclick=()=>ourLetters(); $('hY').onclick=()=>sylView(); $('hB').onclick=buildMenu;
   $('hW').onclick=wordsMenu2; $('hS').onclick=ourSent; $('hM').onclick=mathMenu;
-  main.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{
+  main.querySelectorAll('.chip[data-l]').forEach(b=>b.onclick=()=>{
     const L=b.dataset.l;
     S.known=S.known.includes(L)?S.known.filter(x=>x!==L):ALL_KEYS.filter(x=>x===L||S.known.includes(x));
     save('known');const y=window.scrollY;home();window.scrollTo(0,y);
@@ -584,11 +591,17 @@ function sentHTML(s){
   const shown=S.upper&&!S.cursive?s.toLocaleUpperCase('sk'):s;
   return `<div class="sentence">${shown.split(' ').map((w,i)=>`<span class="w" data-w="${i}">${esc(w)}</span>`).join(' ')}</div>
     <div class="muted" style="margin-top:6px">Ťukni na slovo, ktoré nevieš.</div>
-    <button class="sp" id="spk">🔊 Prečítaj mi</button>`;
+    <button class="sp" id="spk">🔊 Prečítaj mi</button><br><button class="flag" id="flagS">⚑ Zlá veta</button>`;
+}
+const badList=()=>store.get('bad',[]);
+const isBad=t=>badList().includes(t);
+function flagBad(lines){
+  const b=badList(); lines.forEach(l=>{if(!b.includes(l))b.push(l)}); store.set('bad',b.slice(-500));
+  const f=$('flagS'); if(f){f.textContent='✔ Skrytá – už sa neukáže';f.disabled=true}
 }
 function bindSent(s,m){
   const words=s.split(' ');
-  spk_(s);
+  spk_(s); if($('flagS'))$('flagS').onclick=()=>flagBad([s]);
   m.querySelectorAll('.w').forEach(x=>x.onclick=()=>say(words[+x.dataset.w].replace(/[.,!?]/g,''),0.7));
 }
 
@@ -652,7 +665,7 @@ function genSentences(){
   genCache={key,list:[...out]};
   return genCache.list;
 }
-function getSents(){const seen=new Set();return [...customSents(),...EXTRA_SENT,...LONG_SENT,...genSentences()].map(s=>[s,'']).concat(SENTENCES).filter(x=>!seen.has(x[0])&&seen.add(x[0]))}
+function getSents(){const seen=new Set(), bad=new Set(badList());return [...customSents(),...EXTRA_SENT,...LONG_SENT,...genSentences()].map(s=>[s,'']).concat(SENTENCES).filter(x=>!bad.has(x[0])&&!seen.has(x[0])&&seen.add(x[0]))}
 const CONFLICT={'🏠':'🏡','🏡':'🏠'};
 const ALL_KEYS=LETTERS.map(x=>x[0]);
 
@@ -1078,6 +1091,32 @@ function streak(){
 const dailyDone=()=>store.get('days',[]).includes(today());
 function markDaily(){const d=store.get('days',[]);if(!d.includes(today())){d.push(today());while(d.length>400)d.shift();store.set('days',d)}}
 
+/* ---------- Návrh ďalšieho písmenka ---------- */
+function letterReadiness(){
+  const st=getStats(); let ok=0,tot=0,ready=S.known.length>0;
+  S.known.forEach(L=>{const e=[0,0];
+    Object.keys(st).forEach(k=>{if(/^(L|S|W):/.test(k)&&lettersOf(k.slice(2)).includes(L)){e[0]+=st[k][0];e[1]+=st[k][1]}});
+    const n=e[0]+e[1]; ok+=e[0]; tot+=n; if(n<5||e[0]/n<0.85)ready=false});
+  return{ready:ready&&tot>=40,pct:tot?Math.round(ok/tot*100):0,tot};
+}
+function nextLetterIdeas(){
+  const all=getWords(), base=all.filter(x=>canRead(x.w)).length;
+  return ALL_KEYS.filter(L=>!S.known.includes(L)&&!['Q','W','X','Ŕ','Ĺ','DZ','Ä'].includes(L)).map(L=>{
+    const k=new Set([...S.known,L]);
+    return[L,all.filter(x=>lettersOf(x.w).every(l=>k.has(l))).length-base];
+  }).filter(r=>r[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,4);
+}
+function nextLetterHTML(){
+  const r=letterReadiness();
+  if(r.ready){
+    const ideas=nextLetterIdeas();
+    return`<div class="note good">🎉 <b>${S.name?esc(S.name)+' číta známe písmenká':'Čítanie známych písmeniek ide'} na ${r.pct} %.</b> Môžete pridať ďalšie písmenko${ideas.length?' – najviac nových slov otvorí:':'.'}
+      ${ideas.length?`<div class="chips" style="margin-top:8px">${ideas.map(([L,n])=>`<button class="chip on" data-add="${L}" style="min-width:0;padding:8px 12px">+ ${L} <small style="font-weight:400">(${n} ${n===1?'slovo':n<5?'slová':'slov'})</small></button>`).join('')}</div>`:''}</div>`;
+  }
+  if(r.tot>=15)return`<div class="muted" style="margin-bottom:8px">Úspešnosť pri čítaní: <b>${r.pct} %</b>. Keď budú všetky známe písmenká nad 85 %, navrhnem ďalšie.</div>`;
+  return'';
+}
+
 /* ---------- Sovička Zvedavko (maskot) ---------- */
 let owlT=null;
 function owl(text){
@@ -1087,6 +1126,7 @@ function owl(text){
 }
 function owlHome(){
   const st=streak(), name=S.name?' '+S.name:'';
+  if(letterReadiness().ready&&Math.random()<.5)return`Ide ti to výborne${name}! 🎉 Povedz rodičom, nech ti pridajú nové písmenko 🔤`;
   if(!dailyDone())return st?`Ahoj${name}! Máš sériu ${st} ${st===1?'deň':st<5?'dni':'dní'} 🔥 Nepokaz ju – dáme dnešnú výzvu?`:`Ahoj${name}! Som sovička Zvedavko. Dáme si dnešnú výzvu? 🔥`;
   return rand([`Dnešnú výzvu máš hotovú! ${g('Si šikovný','Si šikovná')} 🌟`,`Super${name}! Zajtra pokračujeme v sérii 🔥`,`Môžeš si zahrať ešte hru alebo príbeh 📚`]);
 }
@@ -1117,6 +1157,8 @@ function storyMaker(){
     if(pl.length&&Math.random()<.6){pZ=rand(pl);lines.push(cap(X.n)+' a '+Y.n+' '+pZ[0].slice(0,-1)+'i'+(pZ[2]?' '+pZ[2]:'')+'.')}
     const qs=[[X,pX,true],[Y,pY,true],[X,pY,false],[Y,pX,false]];
     if(pZ)qs.push([X,pZ,true],[Y,pZ,true]);
+    if(lines.some(isBad)&&(storyMaker._r=(storyMaker._r||0)+1)<25)return storyMaker()();
+    storyMaker._r=0;
     const okq=qs.filter(([who,p])=>canRead(predTxt(p,who.f)));
     const[who,p,ans]=rand(okq);
     const verb=who.f?p[0]:p[1], qtxt=cap(verb)+' '+who.n+(p[2]?' '+p[2]:'')+'?';
@@ -1125,10 +1167,10 @@ function storyMaker(){
     return{label:'📚 Príbeh',
       prompt:`<div class="story">${lines.map(l=>`<div class="sentence sm">${shown(l).split(' ').map(w=>`<span class="w">${esc(w)}</span>`).join(' ')}</div>`).join('')}</div>
         <div class="question sentence sm">${shown(qtxt).split(' ').map(w=>`<span class="w">${esc(w)}</span>`).join(' ')}</div>
-        <button class="sp" id="spk">🔊 Prečítaj mi</button>`,
+        <button class="sp" id="spk">🔊 Prečítaj mi</button><br><button class="flag" id="flagS">⚑ Zlý príbeh</button>`,
       options:[{html:'✅<small>áno</small>',correct:ans},{html:'❌<small>nie</small>',correct:!ans}],optClass:'yn',
       ok:ans?'Áno':'Nie',track:['T:pribeh'],
-      bind(m){$('spk').onclick=()=>say(all,0.8);m.querySelectorAll('.w').forEach(x=>x.onclick=()=>say(x.textContent.replace(/[.,!?]/g,'').toLocaleLowerCase('sk'),0.7))}};
+      bind(m){$('spk').onclick=()=>say(all,0.8);$('flagS').onclick=()=>flagBad(lines);m.querySelectorAll('.w').forEach(x=>x.onclick=()=>say(x.textContent.replace(/[.,!?]/g,'').toLocaleLowerCase('sk'),0.7))}};
   };
 }
 function storyGame(){
@@ -1361,12 +1403,17 @@ function overview(){
       <button class="big-btn" id="pw">🎯 Precvičiť slabé miesta</button></div>
     <div class="panel"><h3>Počítanie</h3>
       ${Object.keys(M).filter(k=>st['M:'+k]).map(k=>{const e=st['M:'+k];return`<div class="row"><span>${M[k]}</span><b style="background:${col(pct(e))};padding:2px 10px;border-radius:10px">${pct(e)} %</b></div>`}).join('')||'<div class="muted">Zatiaľ žiadne príklady.</div>'}</div>
+    ${badList().length?`<div class="panel"><h3>Skryté vety (${badList().length})</h3>
+      <div class="muted">Vety, ktoré ste označili ako zlé. Appka ich už neukazuje.</div>
+      <div style="max-height:160px;overflow:auto;margin:8px 0;font-size:15px">${badList().slice(-30).reverse().map(t=>`<div>• ${esc(t)}</div>`).join('')}</div>
+      <button class="toggle" id="unbad">Zobraziť ich znova</button></div>`:''}
     <div class="panel"><h3>Spolu</h3>
       <div class="row"><span>Hviezdičky</span><b>⭐ ${S.stars}</b></div>
       <div class="row"><span>Odznaky</span><b>🎖️ ${Math.floor(S.stars/5)}</b></div>
       <div class="row"><span>Úlohy za 7 dní</span><b>${week.reduce((a,w)=>a+w[1],0)}</b></div>
       <button class="toggle" id="resetSt" style="margin-top:8px">Vynulovať štatistiky</button><span id="rsMsg"></span></div>`;
   $('pw').onclick=practiceWeak;
+  if($('unbad'))$('unbad').onclick=()=>{store.set('bad',[]);overview()};
   $('resetSt').onclick=()=>{const b=$('resetSt');if(b.dataset.c){store.set('stats',{});overview()}else{b.dataset.c=1;b.textContent='Naozaj vynulovať? Ťuknite znova'}};
 }
 
@@ -1452,7 +1499,7 @@ function welcome(){
     const keepName=()=>{S.name=$('wName').value.trim();save('name')};
     $('wBoy').onclick=()=>{keepName();S.girl=false;save('girl');render()};
     $('wGirl').onclick=()=>{keepName();S.girl=true;save('girl');render()};
-    main.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{keepName();const L=b.dataset.l;sel=sel.includes(L)?sel.filter(x=>x!==L):ALL_KEYS.filter(x=>x===L||sel.includes(x));const y=window.scrollY;render();window.scrollTo(0,y)});
+    main.querySelectorAll('.chip[data-l]').forEach(b=>b.onclick=()=>{keepName();const L=b.dataset.l;sel=sel.includes(L)?sel.filter(x=>x!==L):ALL_KEYS.filter(x=>x===L||sel.includes(x));const y=window.scrollY;render();window.scrollTo(0,y)});
     $('wVow').onclick=()=>{keepName();sel=ALL_KEYS.filter(x=>'AEIOUÁÉÍÓÚ'.includes(x)&&x.length===1);render()};
     $('wAll').onclick=()=>{keepName();sel=ALL_KEYS.slice();render()};
     $('wNone').onclick=()=>{keepName();sel=[];render()};
@@ -1638,6 +1685,13 @@ main.addEventListener('click',e=>{
   const id=e.target.id;
 });
 main.addEventListener('change',e=>{if(e.target.id==='voiceSel'){store.set('voice',e.target.value);pickVoice();say('Ahoj! Ideme čítať.')}});
+// Samostatný web (GitHub Pages): appka sa dá nainštalovať a funguje aj bez internetu.
+// V Claude súbor manifest.json neexistuje, takže sa nič nespustí.
+(async()=>{try{
+  const r=await fetch('manifest.json',{cache:'no-store'}); if(!r.ok)return;
+  const l=document.createElement('link');l.rel='manifest';l.href='manifest.json';document.head.appendChild(l);
+  if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+}catch(e){}})();
 applyFont();
 updStars();
 if(!store.get('onboarded',false)&&S.stars>0)store.set('onboarded',true);

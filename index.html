@@ -412,41 +412,13 @@ function say(text,rate){
 // Písmeno: názov + slabiky (aby počul, ako znie) + príklad
 // Písmeno: nikdy nehovorí názov ("em"), ale hlásku – samohlásku priamo,
 // spoluhlásku cez slabiky (ma, me, mi), lebo hlas nevie vysloviť samotné "m".
-function sayLetter(L,ex){
-  const l=L.toLocaleLowerCase('sk'); let t='';
-  if(isVowel(L)) t=l+'.';
-  else{
-    const v=S.known.filter(isVowel).slice(0,3);
-    t=(v.length?v:['A','E','I']).map(x=>l+x.toLocaleLowerCase('sk')).join(', ')+'.';
-  }
-  if(ex)t+=' '+ex+'.';
-  say(t,0.75);
-}
-const VOICE_HELP=`<div class="note warn"><b>Ako opraviť výslovnosť</b> (stačí raz, je to zadarmo):<br><br>
-  <b>Android:</b><br>
-  1. Nastavenia → Systém (pri Samsungu Všeobecná správa) → Jazyky → <b>Prevod textu na reč</b>.<br>
-  2. Preferovaný nástroj: <b>Rečové služby od Googlu</b>.<br>
-  3. Ťuknite na ⚙ pri nástroji → Inštalovať hlasové údaje → <b>Slovenčina</b> → stiahnuť.<br>
-  4. Jazyk nastavte na <b>Slovenčina (Slovensko)</b>.<br><br>
-  <b>iPhone / iPad:</b><br>
-  Nastavenia → Prístupnosť → <b>Čítanie a rozprávanie</b> (v starších iOS „Hovorený obsah“) → Hlasy → <b>Slovenčina</b> → <b>Laura</b> → stiahnite <b>Vylepšená</b>.<br><br>
-  <b>Počítač:</b> otvorte appku v prehliadači <b>Microsoft Edge</b>.<br><br>
-  Potom appku úplne zavrite, znova otvorte a dajte <b>Test výslovnosti</b>. Ak máte na výber viac hlasov, skúste v ponuke Hlas iný slovenský.</div>`;
+// Hlas v telefóne niekedy zle vyslovuje samostatné slabiky (me → „mi“),
+// preto appka nahlas hovorí len celé slová a vety.
+function sayLetter(L,ex){if(ex)say(ex+'.',0.8)}
 function voiceBoxHTML(){
   if(!hasTTS)return '<div class="note">Tento prehliadač nevie čítať nahlas. Hra funguje aj bez zvuku – slová mu prečítajte vy.</div>';
   const opts=voiceList.map(v=>`<option value="${esc(v.name)}" ${voice&&v.name===voice.name?'selected':''}>${esc(v.name)} (${esc(v.lang)})${v.localService?'':' ☁'}</option>`).join('');
   let h=voiceList.length?`<div class="row"><span>Hlas</span><select id="voiceSel">${opts}</select></div>`:'';
-  const ok=store.get('vok',false);
-  h+=`<div class="vtest">
-    <b>Test výslovnosti</b>
-    <div class="muted">Má zaznieť: <b>me, le, mi, li, ve, vi</b>. Ak počujete „mi“ namiesto „me“ alebo anglický prízvuk, telefón používa anglický hlas.</div>
-    <button class="big-btn" id="vPlay" style="margin-top:8px">🔊 Prehrať test</button>
-    <div style="display:flex;gap:8px;margin-top:8px">
-      <button class="big-btn" id="vYes" style="margin:0;font-size:17px;padding:12px;background:#c9f2b4">✅ Znie dobre</button>
-      <button class="big-btn" id="vNo" style="margin:0;font-size:17px;padding:12px;background:#ffd6d6">❌ Znie zle</button>
-    </div>
-    <div id="vHelp">${(!ok&&!hasSk())||store.get('vbad',false)?VOICE_HELP:''}</div>
-  </div>`;
   return h;
 }
 
@@ -475,7 +447,7 @@ function home(){
      <button class="card c1" id="hG"><span class="big">🎮</span>Hry<small>pexeso, blesk…</small></button>
      <button class="card c6 wide" id="hM"><span class="big">🔢</span><div>Počítanie<br><small>0 – 100 · plus, mínus, hodiny, peniaze…</small></div></button>
    </div>
-   ${hasTTS&&S.sound&&!store.get('vok',false)?'<div class="note warn">🔈 Pre rodiča: vyslovuje appka zle (napr. „mi“ namiesto „me“)? Dole v Nastaveniach je <b>Test výslovnosti</b> a návod na opravu.</div>':''}
+
    <div class="panel">
      <h3>Moje odznaky ${have?'('+have+')':''}</h3>
      <div class="badges">${st}</div>
@@ -522,7 +494,7 @@ function home(){
      <div class="row"><span>Zvuk</span><button class="toggle ${S.sound?'on':''}" id="tSound">${S.sound?'Zapnutý':'Vypnutý'}</button></div>
      <div class="row"><span>Rýchlosť reči</span><button class="toggle on" id="tSlow">${S.slow?'Pomaly':'Normálne'}</button></div>
      <div id="voiceBox">${voiceBoxHTML()}</div>
-     ${hasTTS?'<button class="big-btn alt" id="tTest" style="margin-top:10px">🔊 Vyskúšať hlas</button>':''}
+
      <div class="note">Tip: nech dieťa číta nahlas samo. Tlačidlo 🔊 je na kontrolu alebo nápovedu.</div>
    </div>`;
   main.querySelectorAll('[data-card]').forEach(b=>b.onclick=()=>cardsView(b.dataset.card));
@@ -557,7 +529,7 @@ function home(){
   $('tSplit').onclick=()=>{S.split=!S.split;save('split');rer()};
   $('tSound').onclick=()=>{S.sound=!S.sound;save('sound');rer();if(S.sound)say('Zvuk je zapnutý.')};
   $('tSlow').onclick=()=>{S.slow=!S.slow;save('slow');rer();say('Mama, lama, mimi.')};
-  if($('tTest'))$('tTest').onclick=()=>{pickVoice();say('Ahoj'+(S.name?' '+S.name:'')+'! Ideme čítať. Mama, lama, lev, mimi.')};
+
 }
 
 /* ---------- Písmenká ---------- */
@@ -575,18 +547,15 @@ function sylView(c){
   if(!C.length||!V.length){main.innerHTML='<div class="note">Na slabiky treba aspoň jednu samohlásku a jednu spoluhlásku.</div>';return}
   c=C.includes(c)?c:C[0];
   main.innerHTML=`
-    <div class="show" id="sshow"><div class="eq"><span class="c">${cs(c)}</span> + <span class="v">${cs(V[0])}</span> = ${cs(c+V[0])}</div><div class="muted">Ťukni na slabiku a počúvaj</div></div>
+    <div class="show" id="sshow"><div class="eq"><span class="c">${cs(c)}</span> + <span class="v">${cs(V[0])}</span> = ${cs(c+V[0])}</div><div class="muted">Ťukni na slabiku</div></div>
     <div class="sylgrid" style="grid-template-columns:repeat(${Math.min(C.length,5)},1fr);margin-bottom:14px">${C.map(x=>`<button class="key ${x===c?'sel':''}" data-c="${x}">${cs(x)}</button>`).join('')}</div>
     <div class="sylgrid" style="grid-template-columns:repeat(${Math.min(V.length,5)},1fr)">${V.map(v=>`<button class="key" data-v="${v}">${cs(c+v)}</button>`).join('')}</div>
-    <button class="big-btn alt" id="sg">🎮 Hra: Čo počuješ?</button>`;
-  main.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{sylView(b.dataset.c);sayLetter(b.dataset.c)});
+    <div class="note">Slabiky čítajte spolu nahlas – appka ich nevyslovuje, lebo hlas v telefóne ich často prečíta zle.</div>`;
+  main.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>sylView(b.dataset.c));
   main.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{
     const v=b.dataset.v;
     $('sshow').innerHTML=`<div class="eq"><span class="c">${cs(c)}</span> + <span class="v">${cs(v)}</span> = ${cs(c+v)}</div>`;
-    say((c+v).toLocaleLowerCase('sk'),0.7);
   });
-  $('sg').onclick=sylGame;
-  if(!hasTTS)$('sg').style.display='none';
 }
 function sylMaker(){
   const pool=sylPool(), next=wqueue(pool,x=>['S:'+x]);
@@ -716,7 +685,7 @@ function letterMaker(){
     const t=next();
     const opts=shuffle([t,...shuffle(S.known.filter(x=>x!==t)).slice(0,3)]);
     let spk,ok,hint;
-    if(isVowel(t)){const l=t.toLocaleLowerCase('sk');spk='Nájdi písmeno '+l+'.';ok=l;hint='Nájdi písmeno'}
+    if(isVowel(t)){const l=t.toLocaleLowerCase('sk');spk='Nájdi písmeno '+l+'.';ok='';hint='Nájdi písmeno'}
     else{
       const st=w=>w.replace(/-/g,'').toLocaleLowerCase('sk').startsWith(t.toLocaleLowerCase('sk'));
       const cand=getWords().filter(x=>canRead(x.w)&&st(x.w));
@@ -743,7 +712,7 @@ function buildMenu(){
   setTitle('Skladaj');
   const sp=sylPool(), bp=buildPool();
   main.innerHTML=`<div class="levels">
-     <button class="level c2" data-m="syl" ${sp.length?'':'disabled'}><span style="font-size:40px">🧩</span><div>Slabiky<span>počúvaj a poskladaj: ${sp.slice(0,4).map(cs).join(', ')}…</span></div></button>
+     <button class="level c2" data-m="syl" ${sp.length?'':'disabled'}><span style="font-size:40px">🧩</span><div>Slabiky<span>pozri sa a poskladaj: ${sp.slice(0,4).map(cs).join(', ')}…</span></div></button>
      <button class="level c1" data-m="copy" ${bp.length?'':'disabled'}><span style="font-size:40px">👀</span><div>Slová podľa vzoru<span>pozri sa a poskladaj rovnaké slovo</span></div></button>
      <button class="level c4" data-m="dict" ${bp.length?'':'disabled'}><span style="font-size:40px">👂</span><div>Slová bez vzoru<span>pozri obrázok, počúvaj a poskladaj</span></div></button>
    </div>
@@ -756,11 +725,11 @@ function buildGame(mode){
   const next=wqueue(items,x=>[mode==='syl'?'S:'+x.w.toLocaleUpperCase('sk'):'W:'+x.w.replace(/-/g,'').toLocaleLowerCase('sk')]);
   runQuiz({n:mode==='syl'?8:6,again:()=>buildGame(mode),make(){
     const t=next(), plain=t.w.replace(/-/g,''), chars=lettersOf(plain);
-    const showTmpl=mode==='copy';
+    const showTmpl=mode==='copy'||mode==='syl';
     const top=(t.e&&mode!=='syl'?`<div class="pic">${t.e}</div>`:'')+
       (showTmpl?`<div class="tmpl">${wordHTML(t.w)}</div>`:`<div class="q">${mode==='syl'?'Poskladaj slabiku':'Poskladaj slovo'} <span id="hid"></span> <button class="reveal" id="rv">👀</button></div>`)+
-      `<button class="sp" id="spk">🔊 Počúvaj</button>`;
-    return{prompt:top,ok:plain,auto:plain,track:[(mode==='syl'?'S:'+plain.toLocaleUpperCase('sk'):'W:'+plain.toLocaleLowerCase('sk'))],custom:(box,finish)=>{
+      (mode==='syl'?'':`<button class="sp" id="spk">🔊 Počúvaj</button>`);
+    return{prompt:top,ok:mode==='syl'?'':plain,auto:mode==='dict'?plain:'',track:[(mode==='syl'?'S:'+plain.toLocaleUpperCase('sk'):'W:'+plain.toLocaleLowerCase('sk'))],custom:(box,finish)=>{
       const others=shuffle(S.known.filter(l=>!chars.includes(l))).slice(0,chars.length<=2?1:2);
       const tiles=shuffle([...chars,...others]);
       box.innerHTML=`<div class="slots">${chars.map((_,i)=>`<div class="slot ${i===0?'next':''}" data-s="${i}"></div>`).join('')}</div>
@@ -775,14 +744,14 @@ function buildGame(mode){
           const sl=box.querySelector(`[data-s="${pos}"]`); sl.textContent=cs(l); sl.classList.remove('next'); sl.classList.add('f');
           b.classList.add('used'); pos++;
           const nx=box.querySelector(`[data-s="${pos}"]`); if(nx)nx.classList.add('next');
-          if(pos===chars.length) finish(mistakes===0); else if(ends[pos]) say(ends[pos],0.8);
+          if(pos===chars.length) finish(mistakes===0);
         }else{
           mistakes++; b.classList.remove('bad'); void b.offsetWidth; b.classList.add('bad'); setTimeout(()=>b.classList.remove('bad'),450);
           say('Skús iné písmenko.');
         }
       });
     },bind(){
-      $('spk').onclick=()=>say(plain,0.75);
+      if($('spk'))$('spk').onclick=()=>say(plain,0.75);
       const rv=$('rv'); if(rv)rv.onclick=()=>{$('hid').innerHTML=wordHTML(t.w)};
     }};
   }});
@@ -816,9 +785,9 @@ function pseudoMaker(){
       const wt=weight(w.split('-').map(x=>'S:'+x.toLocaleUpperCase('sk')))*Math.random();if(wt>bw){bw=wt;best=w}}
     w=best;last=w;
     const plain=w.replace(/-/g,''), parts=w.split('-');
-    return{label:'🎲 Vymyslené slovo',prompt:`<div class="muted" style="font-size:18px;margin-bottom:6px">Prečítaj po slabikách:</div><div class="word">${wordHTML(w)}</div><button class="sp" id="spk">🔊 Skontroluj</button>`,
-      read:true,ok:plain,track:parts.filter(x=>x.length===2).map(x=>'S:'+x.toLocaleUpperCase('sk')),
-      bind(){$('spk').onclick=()=>{say(parts.join(', '),0.6);setTimeout(()=>say(plain,0.8),parts.length*700+300)}}};
+    return{label:'🎲 Vymyslené slovo',prompt:`<div class="muted" style="font-size:18px;margin-bottom:6px">Prečítaj po slabikách:</div><div class="word">${wordHTML(w)}</div>`,
+      read:true,ok:'',track:parts.filter(x=>x.length===2).map(x=>'S:'+x.toLocaleUpperCase('sk')),
+      bind(){}};
   };
 }
 function pseudoGame(){setTitle('Vymyslené slová');runQuiz({n:10,again:pseudoGame,make:pseudoMaker()})}
@@ -828,7 +797,7 @@ function wordMaker(){
   return()=>{
     const t=next(), plain=t.w.replace(/-/g,''), parts=t.w.split('-'), tr=['W:'+plain.toLocaleLowerCase('sk')];
     const hint=`<button class="sp" id="spk">🔊 Skontroluj</button>`;
-    const bind=()=>{$('spk').onclick=()=>{say(parts.join(', '),0.6);setTimeout(()=>say(plain),parts.length*700+300)}};
+    const bind=()=>{$('spk').onclick=()=>say(plain,0.8)};
     if(t.e){
       const ok=x=>x.e&&x.e!==t.e&&CONFLICT[t.e]!==x.e;
       let dp=pics.filter(ok); if(dp.length<2)dp=getWords().filter(ok);
@@ -1002,7 +971,7 @@ function runQuiz(cfg){
       it.custom($('cbox'),firstTry=>{
         if(done)return;done=true;
         if(firstTry){score++;addStar()}
-        say(it.ok+'! '+(firstTry?praise():'Dobre!'));confetti(firstTry?8:3);owl(firstTry?praise():'Dobre! 👍');
+        say((it.ok?it.ok+'! ':'')+(firstTry?praise():'Dobre!'));confetti(firstTry?8:3);owl(firstTry?praise():'Dobre! 👍');
         finishItem(firstTry,1700);
       });
     }
@@ -1214,7 +1183,7 @@ function pexeso(mode){
     <div class="pex ${cards.length>8?'p12':''}">${cards.map((c,i)=>`<button class="pc" data-i="${i}"><span class="back">❓</span><span class="face">${c.h}</span></button>`).join('')}</div>`;
   main.querySelectorAll('.pc').forEach(b=>b.onclick=()=>{
     const i=+b.dataset.i; if(lock||b.classList.contains('open')||b.classList.contains('done'))return;
-    b.classList.add('open'); open.push(i); say(cards[i].sp,0.8);
+    b.classList.add('open'); open.push(i); if(mode==='pic')say(cards[i].sp,0.8);
     if(open.length===2){
       moves++;$('mv').textContent=moves; const[a,c]=open; open=[];
       if(cards[a].id===cards[c].id){
@@ -1342,7 +1311,7 @@ function readingMakers(){
   const m=[];
   if(getWords().filter(x=>canRead(x.w)).length)m.push(wordMaker());
   if(getSents().filter(x=>canRead(x[0])).length)m.push(sentMaker());
-  if(sylPool().length){m.push(pseudoMaker());if(hasTTS)m.push(sylMaker())}
+  if(sylPool().length)m.push(pseudoMaker())
   if(canStory())m.push(storyMaker());
   if(S.known.length>=2)m.push(letterMaker());
   return m;
@@ -1356,7 +1325,7 @@ function dailyGame(){
 }
 function practiceWeak(){
   setTitle('🎯 Precvičovanie');
-  const m=[]; if(S.known.length>=2)m.push(letterMaker()); if(sylPool().length){m.push(pseudoMaker());if(hasTTS)m.push(sylMaker())}
+  const m=[]; if(S.known.length>=2)m.push(letterMaker()); if(sylPool().length)m.push(pseudoMaker())
   if(getWords().filter(x=>canRead(x.w)).length)m.push(wordMaker());
   if(!m.length){home();return}
   runQuiz({n:10,again:practiceWeak,make:mixMaker(m)});
@@ -1478,9 +1447,6 @@ function welcome(){
        <div class="chips">${ALL_KEYS.map(L=>`<button class="chip ${sel.includes(L)?'on':''}" data-l="${L}">${L}</button>`).join('')}</div>
        <div class="muted" style="margin-top:8px">Vybraté: ${sel.length?sel.join(' '):'zatiaľ nič'}</div>
      </div>
-     ${hasTTS?`<div class="panel"><h3>3. Skúška zvuku</h3>
-       <div class="muted">Má zaznieť po slovensky „me, le, mi, li“. Ak to znie anglicky, návod nájdete neskôr v Nastaveniach.</div>
-       <button class="big-btn alt" id="wTest">🔊 Prehrať</button></div>`:''}
      <button class="big-btn" id="wGo" ${sel.length?'':'disabled'}>🚀 Začať hrať</button>
      <div class="muted" style="text-align:center;margin-top:8px">Všetko sa ukladá len v tomto zariadení.</div>`;
     const keepName=()=>{S.name=$('wName').value.trim();save('name')};
@@ -1490,7 +1456,7 @@ function welcome(){
     $('wVow').onclick=()=>{keepName();sel=ALL_KEYS.filter(x=>'AEIOUÁÉÍÓÚ'.includes(x)&&x.length===1);render()};
     $('wAll').onclick=()=>{keepName();sel=ALL_KEYS.slice();render()};
     $('wNone').onclick=()=>{keepName();sel=[];render()};
-    if($('wTest'))$('wTest').onclick=()=>{pickVoice();say('me, le, mi, li. Ahoj!',0.75)};
+
     $('wGo').onclick=()=>{keepName();S.known=sel;save('known');store.set('onboarded',true);window.scrollTo(0,0);home();say('Ahoj'+(S.name?' '+S.name:'')+'! Ideme sa hrať.')};
   };
   render();
@@ -1670,9 +1636,6 @@ async function cardsView(kind,opt){
 // posluchače nastavení – registrované iba raz
 main.addEventListener('click',e=>{
   const id=e.target.id;
-  if(id==='vPlay'){pickVoice();say('me, le, mi, li, ve, vi. Mama mele.',0.75)}
-  else if(id==='vYes'){store.set('vok',true);store.set('vbad',false);const y=window.scrollY;home();window.scrollTo(0,y);say('Výborne, ideme čítať!')}
-  else if(id==='vNo'){store.set('vok',false);store.set('vbad',true);$('vHelp').innerHTML=VOICE_HELP;$('vHelp').scrollIntoView({behavior:'smooth'})}
 });
 main.addEventListener('change',e=>{if(e.target.id==='voiceSel'){store.set('voice',e.target.value);pickVoice();say('Ahoj! Ideme čítať.')}});
 applyFont();

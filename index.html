@@ -1,0 +1,1685 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zvedavko – čítanie a počítanie hrou</title>
+<meta name="description" content="Zvedavko – hra pre prvákov na učenie čítania a počítania – slová a vety len z písmeniek, ktoré dieťa pozná.">
+<meta name="theme-color" content="#FFB703">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Zvedavko">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23FFB703'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle'%3E🦉%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Playwrite+SK:wght@200..400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFF8EC; --ink:#2B2D42; --muted:#6b6f80;
+    --yellow:#FFB703; --blue:#8ECAE6; --green:#90BE6D; --pink:#F28482; --purple:#B8A1E3;
+    --s0:#1D4ED8; --s1:#DC2626;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Andika",system-ui,sans-serif}
+  button{font-family:inherit;color:inherit;cursor:pointer;border:none}
+  header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-bottom:2px solid #f1e6d2}
+  header h1{flex:1;margin:0;font-size:20px;line-height:1.15}
+  .hbtn{background:#fff;border-radius:14px;padding:8px 12px;font-size:20px;box-shadow:0 2px 0 #e6d9c2}
+  .stars{background:#fff;border-radius:14px;padding:8px 12px;font-size:18px;font-weight:700;box-shadow:0 2px 0 #e6d9c2}
+  main{max-width:640px;margin:0 auto;padding:16px 14px 40px}
+  .hello{font-size:30px;font-weight:700;margin:6px 0 16px}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .card{border-radius:24px;padding:18px 10px;font-size:22px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:0 5px 0 rgba(0,0,0,.12);transition:transform .1s}
+  .card:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.12)}
+  .card .big{font-size:48px}
+  .card small{font-weight:400;font-size:14px;color:#3b3d50}
+  .c1{background:var(--yellow)}.c2{background:var(--blue)}.c3{background:var(--green)}.c4{background:var(--pink)}
+  .panel{background:#fff;border-radius:20px;padding:14px 16px;margin-top:18px;box-shadow:0 3px 0 #efe3cd}
+  .panel h3{margin:0 0 8px;font-size:18px}
+  .badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:10px;margin-bottom:8px}
+  .badge{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;font-weight:700;text-align:center;line-height:1.15}
+  .badge .b{width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px;
+    background:radial-gradient(circle at 35% 30%,#fff6d0,#ffd34d 60%,#e8a800);border:4px solid #fff;box-shadow:0 0 0 3px #e8a800,0 4px 0 3px rgba(0,0,0,.12)}
+  .badge.lock .b{background:#eee;box-shadow:0 0 0 3px #ddd;font-size:22px;filter:grayscale(1);opacity:.6}
+  .badge.lock{color:#aaa}
+  .muted{color:var(--muted);font-size:15px}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid #f3ead9}
+  .row:first-of-type{border-top:none}
+  .toggle{background:#eee;border-radius:999px;padding:8px 14px;font-size:16px;font-weight:700;min-width:92px}
+  .toggle.on{background:var(--green)}
+  input[type=text]{font-family:inherit;font-size:18px;padding:8px 12px;border-radius:12px;border:2px solid #e6d9c2;width:160px}
+  .tabs{display:flex;gap:8px;margin-bottom:14px}
+  .tab{flex:1;background:#fff;border-radius:16px;padding:10px;font-size:18px;font-weight:700;box-shadow:0 3px 0 #e6d9c2}
+  .tab.on{background:var(--yellow)}
+  .show{background:#fff;border-radius:24px;min-height:170px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;margin-bottom:14px;box-shadow:0 4px 0 #efe3cd;text-align:center}
+  .lt{font-size:110px;line-height:1;font-weight:700}
+  .lt small{font-size:70px;margin-left:10px;color:var(--s0)}
+  .ex{font-size:34px;margin-top:8px}
+  .ex b{color:var(--s1)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:8px}
+  .key{background:#fff;border-radius:14px;padding:10px 0;font-size:28px;font-weight:700;box-shadow:0 3px 0 #e6d9c2}
+  .key:active,.key.sel{background:var(--blue)}
+  .sylgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+  .sylgrid .key{font-size:32px;padding:16px 0}
+  .eq{font-size:56px;font-weight:700}
+  .eq .c{color:var(--s0)} .eq .v{color:var(--s1)}
+  .big-btn{display:block;width:100%;margin-top:14px;background:var(--green);border-radius:20px;padding:16px;font-size:22px;font-weight:700;box-shadow:0 5px 0 rgba(0,0,0,.12)}
+  .big-btn.alt{background:var(--purple)}
+  .levels{display:grid;gap:12px}
+  .level{border-radius:20px;padding:16px;font-size:22px;font-weight:700;text-align:left;box-shadow:0 5px 0 rgba(0,0,0,.12);display:flex;align-items:center;gap:14px}
+  .level span{font-size:15px;font-weight:400;display:block}
+  .prog{display:flex;gap:6px;justify-content:center;margin-bottom:12px}
+  .prog i{width:14px;height:14px;border-radius:50%;background:#e9dcc4;display:block}
+  .prog i.done{background:var(--green)} .prog i.now{background:var(--yellow);transform:scale(1.25)}
+  .prompt{background:#fff;border-radius:24px;padding:22px 14px;text-align:center;box-shadow:0 4px 0 #efe3cd;margin-bottom:16px}
+  .word{font-size:58px;font-weight:700;letter-spacing:2px;line-height:1.15;word-break:break-word}
+  .syl.s0{color:var(--s0)} .syl.s1{color:var(--s1)}
+  .dot{color:#bbb;margin:0 2px}
+  .sentence{font-size:36px;font-weight:700;line-height:1.35}
+  .sentence .w{display:inline-block;padding:0 4px;border-radius:10px;cursor:pointer}
+  .sentence .w:active{background:#fde8a6}
+  .sp{margin-top:14px;background:#FFF1CC;border-radius:999px;padding:10px 18px;font-size:18px;font-weight:700}
+  .opts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .opts.four{grid-template-columns:repeat(2,1fr)}
+  .opt{background:#fff;border-radius:22px;padding:14px 0;font-size:60px;line-height:1.1;box-shadow:0 5px 0 #e6d9c2;transition:transform .1s}
+  .opts.txt .opt{font-size:46px;font-weight:700}
+  .opt:active{transform:translateY(3px)}
+  .opt.ok{background:#c9f2b4;animation:pop .45s}
+  .opt.bad{background:#ffd6d6;opacity:.55;animation:shake .4s}
+  @keyframes pop{50%{transform:scale(1.15)}}
+  @keyframes shake{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+  .q{font-size:26px;font-weight:700}
+  .reveal{margin-left:8px;background:#eee;border-radius:999px;padding:6px 12px;font-size:16px}
+  .result{text-align:center;padding-top:20px}
+  .trophy{font-size:110px;animation:pop 1s infinite}
+  .result h2{font-size:32px;margin:10px 0 4px}
+  .result p{font-size:22px;margin:6px 0}
+  .newst{font-size:22px;font-weight:700;background:#fff;border-radius:20px;padding:14px;margin:14px 0;box-shadow:0 3px 0 #efe3cd;display:flex;flex-direction:column;align-items:center;gap:10px}
+  .newst .badge{font-size:16px}
+  .newst .badge .b{width:96px;height:96px;font-size:48px;animation:pop 1s infinite}
+  .confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+  .confetti i{position:absolute;top:-50px;font-style:normal;font-size:30px;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(110vh) rotate(360deg)}}
+  .wide{grid-column:1/-1;flex-direction:row;justify-content:center;gap:14px;text-align:left}
+  .wide .big{font-size:44px}
+  .c5{background:var(--purple)}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .chip{background:#f1ece2;border-radius:12px;padding:8px 0;min-width:48px;font-size:20px;font-weight:700}
+  .chip.on{background:var(--green)}
+  .big-btn small{font-weight:400;font-size:16px}
+  .big-btn:disabled,.card:disabled,.level:disabled{opacity:.4}
+  .slots{display:flex;justify-content:center;gap:8px;margin:14px 0 18px;flex-wrap:wrap}
+  .slot{width:62px;height:76px;border-radius:16px;border:3px dashed #d9c9a8;background:#fff;display:flex;align-items:center;justify-content:center;font-size:46px;font-weight:700}
+  .slot.f{border-style:solid;border-color:var(--green);animation:pop .35s}
+  .slot.next{border-color:var(--yellow);background:#FFF8DD}
+  .tiles{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+  .tile{width:70px;height:76px;border-radius:18px;background:var(--yellow);font-size:44px;font-weight:700;box-shadow:0 5px 0 rgba(0,0,0,.15)}
+  .tile.used{visibility:hidden}
+  .tile.bad{animation:shake .4s;background:#ffb4b4}
+  .tmpl{font-size:44px;font-weight:700;letter-spacing:2px;opacity:.9}
+  .pic{font-size:80px;line-height:1.1}
+  .c6{background:#FFD6A5}
+  .eqbig{font-size:clamp(40px,12vw,60px);font-weight:700;letter-spacing:2px;white-space:nowrap}
+  .eqbig .qm{color:var(--s1)}
+  .things{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px;font-size:34px;margin-top:10px;line-height:1.15}
+  .things .grp{display:grid;grid-template-columns:repeat(5,auto);gap:2px 4px;background:#FFF8EC;border-radius:14px;padding:6px 8px}
+  .things .op{font-size:40px;font-weight:700;margin:0 6px}
+  .things .gone{position:relative;display:inline-block}
+  .things .gone i{font-style:normal;opacity:.3}
+  .things .gone::after{content:'✖';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--s1);font-size:30px;font-weight:700}
+  .cells{display:inline-flex;flex-direction:column;gap:3px;background:#FFF8EC;border-radius:10px;padding:6px;vertical-align:middle}
+  .cells .ten{display:flex;gap:2px}
+  .cells i{width:13px;height:13px;border-radius:3px;background:#3B82F6;display:block;position:relative}
+  .cells i.o{background:#F59E0B}
+  .cells i.x{background:#cbd5e1}
+  .cells i.x::after{content:'';position:absolute;left:-1px;right:-1px;top:6px;height:2px;background:var(--s1);transform:rotate(-45deg)}
+  .ansbox{margin:0 auto 12px;width:160px;height:80px;border-radius:18px;background:#fff;border:4px solid var(--yellow);font-size:52px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .ansbox.good{border-color:var(--green);background:#e8f8de}
+  .ansbox.bad{animation:shake .4s;border-color:var(--s1)}
+  .keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:360px;margin:0 auto}
+  .kbtn{background:#fff;border-radius:18px;box-shadow:0 5px 0 #e6d9c2;font-size:36px;font-weight:700;padding:12px 0}
+  .kbtn:active{transform:translateY(3px)}
+  .keypad .okk{background:var(--green)}
+  .opts.pad{grid-template-columns:repeat(6,1fr);gap:8px}
+  .opts.pad .opt{font-size:34px;font-weight:700;padding:12px 0}
+  .bar{height:16px;border-radius:999px;background:#eee;overflow:hidden;margin:10px 0 4px}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--yellow),#ff9f1c);border-radius:999px}
+  .sheet{width:100%;border-radius:12px;box-shadow:0 3px 12px rgba(0,0,0,.12);background:#fff;display:block}
+  .vtest{background:#FFF8EC;border-radius:16px;padding:12px;margin-top:10px}
+  textarea{width:100%;font-family:inherit;font-size:17px;padding:8px 10px;border-radius:12px;border:2px solid #e6d9c2;margin-top:6px;resize:vertical}
+  .cur{font-family:"Playwrite SK",cursive;font-weight:400}
+  .lt .curl{display:block;font-family:"Playwrite SK",cursive;font-weight:400;font-size:64px;color:#7c3aed;margin-top:14px;line-height:1.6}
+  .curlbl{font-size:13px;color:var(--muted);font-weight:400;font-family:"Andika",sans-serif;margin-left:8px;vertical-align:middle}
+  body.cursive .word,body.cursive .sentence,body.cursive .tmpl,body.cursive .tile,body.cursive .slot,body.cursive .opts.txt .opt,body.cursive .sylgrid .key,body.cursive .eq{font-family:"Playwrite SK",cursive;font-weight:400;letter-spacing:0}
+  body.cursive .word{font-size:42px;line-height:1.7}
+  body.cursive .sentence{font-size:28px;line-height:1.9}
+  body.cursive .tile,body.cursive .slot{font-size:34px}
+  .daily{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border-radius:24px;padding:14px 18px;margin-bottom:14px;font-size:20px;
+    background:linear-gradient(135deg,#ffb703,#ff7b00);color:#2B2D42;box-shadow:0 5px 0 rgba(0,0,0,.15)}
+  .daily small{font-size:15px;font-weight:400}
+  .daily.done{background:linear-gradient(135deg,#b7e4a0,#90BE6D)}
+  .owlbox{display:flex;align-items:flex-end;gap:8px;margin:-6px 0 14px}
+  .owlbox .o{font-size:46px;line-height:1}
+  .owlbox .bub{background:#fff;border-radius:18px 18px 18px 4px;padding:10px 14px;font-size:16px;box-shadow:0 3px 0 #efe3cd;flex:1}
+  #owl{position:fixed;right:10px;bottom:14px;display:flex;align-items:flex-end;gap:6px;z-index:20;pointer-events:none;opacity:0;transform:translateY(20px);transition:.25s}
+  #owl.show{opacity:1;transform:none}
+  #owl .o{font-size:50px} #owl .bub{background:#fff;border-radius:16px 16px 4px 16px;padding:8px 12px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.15);max-width:200px}
+  .itlabel{text-align:center;font-size:14px;color:var(--muted);margin:-4px 0 6px}
+  .story{display:flex;flex-direction:column;gap:6px}
+  .sentence.sm{font-size:28px;line-height:1.3}
+  body.cursive .sentence.sm{font-size:22px}
+  .question{margin-top:12px;background:#FFF1CC;border-radius:14px;padding:8px}
+  .opts.yn{grid-template-columns:1fr 1fr}
+  .opts.yn .opt{font-size:46px;display:flex;flex-direction:column;align-items:center}
+  .opts.yn .opt small{font-size:18px;font-weight:700}
+  .opts.clk .opt{font-size:34px}
+  .pex{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .pc{aspect-ratio:3/4;border-radius:14px;background:var(--purple);box-shadow:0 4px 0 rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;padding:2px;overflow:hidden}
+  .pc .face{display:none}.pc .back{font-size:30px}
+  .pc.open,.pc.done{background:#fff}.pc.open .face,.pc.done .face{display:block}.pc.open .back,.pc.done .back{display:none}
+  .pc.done{background:#c9f2b4}
+  .pw{font-size:17px;font-weight:700;word-break:break-word}.pe{font-size:40px}.pl{font-size:30px;font-weight:700}.pl.cur{font-weight:400;font-size:24px}
+  .wp{font-size:20px;line-height:1.45;text-align:left;margin-bottom:8px}
+  .nline{display:flex;justify-content:space-between;align-items:flex-start;margin:22px 4px 8px;border-top:4px solid #2B2D42;padding-top:0}
+  .nline .tk{display:flex;flex-direction:column;align-items:center;margin-top:-12px;min-width:0}
+  .nline .tk i{width:4px;height:20px;background:#2B2D42;display:block}
+  .nline .tk b{font-size:24px;margin-top:4px}
+  .nline .tk.miss b{color:var(--s1);background:#FFF1CC;border-radius:8px;padding:0 6px}
+  .money{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;margin:10px 0}
+  .coin{width:62px;height:62px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3b0,#e0a800);border:3px solid #b8860b;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px}
+  .coin.c2{background:radial-gradient(circle,#e0a800 45%,#d1d5db 47%);}
+  .bill{width:96px;height:52px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;color:#1f2937;border:2px solid rgba(0,0,0,.2)}
+  .week{display:flex;justify-content:space-between;align-items:flex-end;height:110px;margin:14px 0 6px}
+  .week>div{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1}
+  .week .wb{width:22px;border-radius:6px}
+  .note.warn{background:#FFE1DC}
+  select{font-family:inherit;font-size:15px;padding:6px;border-radius:10px;border:2px solid #e6d9c2;max-width:200px}
+  .note{background:#FFF1CC;border-radius:14px;padding:10px 12px;font-size:15px;margin-top:10px}
+</style>
+</head>
+<body>
+<header>
+  <button class="hbtn" id="homeBtn" aria-label="Domov">🏠</button>
+  <h1 id="title">🦉 Zvedavko</h1>
+  <div class="stars" id="stars">⭐ 0</div>
+</header>
+<main id="main"></main>
+
+<script>
+/* ---------- Úložisko (len v tomto prehliadači) ---------- */
+/* ---------- Ukladanie výsledkov ----------
+   1) vždy v tomto zariadení (localStorage; ak nejde, aspoň v pamäti),
+   2) a navyše do účtu Claude (db), keď je appka otvorená prihláseným vlastníkom –
+      vtedy sa výsledky nestratia ani po zatvorení appky a sú aj na inom zariadení. */
+const MEM=new Map(); let lsOK=true;
+try{localStorage.setItem('citanie__t','1');localStorage.removeItem('citanie__t')}catch(e){lsOK=false}
+const LS={
+  get(k){if(lsOK){try{const v=localStorage.getItem(k);if(v!==null)return v}catch(e){}}return MEM.has(k)?MEM.get(k):null},
+  set(k,v,quiet){if(lsOK){try{localStorage.setItem(k,v)}catch(e){}}MEM.set(k,v);if(!quiet)touched()},
+  remove(k){if(lsOK){try{localStorage.removeItem(k)}catch(e){}}MEM.delete(k);touched()},
+  keys(){const out=new Set([...MEM.keys()]);if(lsOK){try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k)out.add(k)}}catch(e){}}return[...out].filter(k=>k.startsWith('citanie_'))}
+};
+function touched(){LS.set('citanie__saved',String(Date.now()),true);cloudSave()}
+let cloudRef=null, cloudBusy=false, cloudAgain=false, cloudTimer=null, cloudState='local';
+const NO_SYNC=['citanie_voice','citanie_vok','citanie_vbad','citanie__saved','citanie__t'];
+function snapshotLocal(){const keys={};LS.keys().forEach(k=>{if(!NO_SYNC.includes(k)){const v=LS.get(k);if(v!==null)keys[k]=v}});return{v:1,savedAt:+(LS.get('citanie__saved')||0),keys}}
+function cloudSave(now){if(!cloudRef)return;clearTimeout(cloudTimer);cloudTimer=setTimeout(cloudWrite,now?0:2500)}
+async function cloudWrite(){
+  if(!cloudRef)return; if(cloudBusy){cloudAgain=true;return}
+  cloudBusy=true;
+  try{await cloudRef.set(snapshotLocal());cloudState='cloud'}
+  catch(e){if(e&&(e.code==='invalid_argument'||e.code==='revoked'||e.code==='not_granted'||e.code==='quota_exceeded')){cloudRef=null;cloudState='local'}}
+  cloudBusy=false; updCloudNote();
+  if(cloudAgain){cloudAgain=false;cloudWrite()}
+}
+async function initCloud(){
+  try{
+    if(!(window.claude&&typeof window.claude.use==='function'))return;
+    const[db,user]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);
+    if(!db||!user)return;
+    const uid=await user.id(); if(!uid)return;
+    const ref=db.doc('data/users/'+uid+'/stav');
+    const snap=await Promise.race([ref.get(),new Promise((_,rej)=>setTimeout(()=>rej({code:'timeout'}),10000))]);
+    const local=snapshotLocal(), remote=snap.exists?snap.data():null;
+    cloudRef=ref;
+    if(remote&&remote.keys&&(remote.savedAt||0)>local.savedAt){
+      Object.entries(remote.keys).forEach(([k,v])=>LS.set(k,v,true));
+      LS.set('citanie__saved',String(remote.savedAt),true);
+      loadS();genCache.key='';applyFont();updStars();
+      if(!main.querySelector('.prog')&&!main.querySelector('.pex')){if(store.get('onboarded',false)||S.stars>0)home();else welcome()}
+      cloudState='cloud';
+    }else if(!remote||local.savedAt>(remote.savedAt||0)){await cloudWrite()}
+    else cloudState='cloud';
+    updCloudNote();
+  }catch(e){}
+}
+function cloudNoteHTML(){return cloudState==='cloud'
+  ?'☁️ <b>Výsledky sa ukladajú do vášho účtu Claude.</b> Zostanú aj po zatvorení appky a uvidíte ich aj na inom zariadení, keď ste prihlásená.'
+  :'📱 Výsledky sa ukladajú <b>v tomto zariadení a prehliadači</b>. Nepoužívajte súkromné (inkognito) okno a nemažte údaje prehliadača. Na prenos do iného zariadenia je kód v časti „Deti a prenos“.'}
+function updCloudNote(){document.querySelectorAll('.cloudNote').forEach(n=>n.innerHTML=cloudNoteHTML())}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')cloudSave(true)});
+
+// Úložisko: nastavenia zariadenia sú spoločné, ostatné má každé dieťa (profil) zvlášť
+const GLOBAL_KEYS=['voice','vok','vbad','profiles','cur','sound','slow'];
+const PROFILE_KEYS=['name','upper','cursive','split','stars','known','girl','mmax','mpics','mband','mcross','cwords','csents','onboarded','stats','days','act','flash'];
+function curProf(){return +(LS.get('citanie_cur')||0)||0}
+const keyFor=(k,id)=>GLOBAL_KEYS.includes(k)||id===0?'citanie_'+k:'citanie_p'+id+'_'+k;
+const store={
+  get(k,d){try{const v=LS.get(keyFor(k,curProf()));return v===null?d:JSON.parse(v)}catch(e){return d}},
+  set(k,v){try{LS.set(keyFor(k,curProf()),JSON.stringify(v))}catch(e){}},
+  getFor(id,k,d){try{const v=LS.get(keyFor(k,id));return v===null?d:JSON.parse(v)}catch(e){return d}},
+  delFor(id,k){try{LS.remove(keyFor(k,id))}catch(e){}}
+};
+const S={};
+function loadS(){Object.assign(S,{
+  name:store.get('name',''),
+  upper:store.get('upper',true),
+  cursive:store.get('cursive',false),
+  split:store.get('split',true),
+  sound:store.get('sound',true),
+  stars:store.get('stars',0),
+  known:store.get('known',['A','E','I','L','M','V']),
+  slow:store.get('slow',false),
+  girl:store.get('girl',false),
+  mmax:store.get('mmax',5),
+  mpics:store.get('mpics',true)
+});}
+loadS();
+function save(k){store.set(k,S[k])}
+
+/* ---------- Dáta ---------- */
+const LETTERS=[
+ ['A','auto','🚗'],['Á','kráľ','👑'],['Ä','mäso','🥩'],['B','banán','🍌'],['C','citrón','🍋'],['Č','čerešne','🍒'],
+ ['D','dom','🏠'],['Ď','ďakujem','🙏'],['DZ','',''],['DŽ','džús','🧃'],['E','euro','💶'],['É','',''],
+ ['F','farby','🎨'],['G','gitara','🎸'],['H','hruška','🍐'],['CH','chlieb','🍞'],['I','',''],['Í','líška','🦊'],
+ ['J','jablko','🍎'],['K','koza','🐐'],['L','lev','🦁'],['Ĺ','',''],['Ľ','ľad','🧊'],['M','myš','🐭'],
+ ['N','nos','👃'],['Ň','deň','🌞'],['O','oko','👁️'],['Ó','balón','🎈'],['Ô','kôň','🐴'],['P','pes','🐕'],
+ ['Q','',''],['R','ryba','🐟'],['Ŕ','',''],['S','slon','🐘'],['Š','šál','🧣'],['T','torta','🎂'],
+ ['Ť','ťava','🐫'],['U','ucho','👂'],['Ú','úsmev','😊'],['V','vlak','🚂'],['W','',''],['X','',''],
+ ['Y','syr','🧀'],['Ý','býk','🐂'],['Z','zajac','🐰'],['Ž','žaba','🐸']
+];
+const FIND_LETTERS=['A','B','C','Č','D','E','F','G','H','I','J','K','L','M','N','O','P','R','S','Š','T','U','V','Z','Ž','Y'];
+
+const CONS=['M','L','S','P','T','V','D','N','K','R','B','Z','J','H','C','Š','Č','Ž'];
+const VOW=['A','E','I','O','U'];
+
+const WORDS={
+ 1:['pes|🐕','dom|🏠','lev|🦁','nos|👃','syr|🧀','med|🍯','myš|🐭','o-ko|👁️','u-cho|👂','ru-ka|✋','ry-ba|🐟','ko-za|🐐',
+    'so-va|🦉','ža-ba|🐸','au-to|🚗','slon|🐘','vlak|🚂','loď|⛵','list|🍃','hrib|🍄','sneh|❄️','ľad|🧊','býk|🐂','kôň|🐴'],
+ 2:['lop-ta|⚽','sln-ko|☀️','tor-ta|🎂','mač-ka|🐈','kra-va|🐄','ov-ca|🐑','za-jac|🐰','líš-ka|🦊','ba-nán|🍌','ba-lón|🎈',
+    'kni-ha|📖','hruš-ka|🍐','mrk-va|🥕','strom|🌳','kvet|🌷','ko-hút|🐓','vče-la|🐝','me-lón|🍉','mo-týľ|🦋','trak-tor|🚜'],
+ 3:['zmrz-li-na|🍦','bi-cy-kel|🚲','dáž-dnik|☂️','hviez-da|⭐','pa-ra-daj-ka|🍅','ka-či-ca|🦆','gi-ta-ra|🎸','me-siac|🌙',
+    'ko-ru-na|👑','čo-ko-lá-da|🍫','ja-ho-da|🍓','ra-ke-ta|🚀','lie-ta-dlo|✈️','ko-ryt-nač-ka|🐢']
+};
+const ALL_WORDS=[].concat(WORDS[1],WORDS[2],WORDS[3]).map(s=>{const[w,e]=s.split('|');return{w,e}});
+
+const SENTENCES=[
+ ['To je pes.','🐕'],['Tu je dom.','🏠'],['Mama má kvet.','🌷'],['Ema má loptu.','⚽'],
+ ['Ryba pláva vo vode.','🐟'],['Slnko svieti.','☀️'],['Ide vlak.','🚂'],['Žaba skáče.','🐸'],
+ ['Myš je malá.','🐭'],['Slon je veľký.','🐘'],['Padá sneh.','❄️'],['Kohút kikiríka.','🐓'],
+ ['Ocko pečie tortu.','🎂'],['Mám rád zmrzlinu.','🍦'],['Prší, beriem si dáždnik.','☂️'],['Včela bzučí.','🐝'],
+ ['Sova húka v noci.','🦉'],['Zajac papá mrkvu.','🐰'],['Lietadlo letí vysoko.','✈️'],['Mačka pije mlieko.','🐈'],
+ ['Auto je červené.','🚗'],['Raketa letí do vesmíru.','🚀'],['Jablko je sladké.','🍎']
+];
+
+/* Slová a vety z prvých písmeniek (A, E, I, L, M, V) – ďalšie sa odomknú, keď pridáte písmenká */
+const EXTRA_WORDS=['ma-ma|👩','la-ma|🦙','lev|🦁','vi-la|','mi-mi|👶','E-ma|','E-la|','E-va|','I-va|','Mi-la|','Mi-a|','Le-a|',
+ 'E-mil|','Vil-ma|','a-le|','mal|','ma-la|','ma-li|','me-le|','mle-la|','vie|','viem|',
+ 'Ti-na|','Te-o|','To-mi|','Sa-ša|','pi-la|','me-tla|🧹','o-sa|','se-no|','ta-to|','O-to|'];
+const LONG_WORDS=['má|','mám|','má-me|','vám|','mi-lá|','ma-lá|','ma-lé|','mi-lé|','ma-lí|','mi-lí|','lá-mal|','lá-ma-la|','Lí-vi-a|','E-mí-li-a|','mí-ľa|','vý-let|','lí-ce|','lú-ka|','vá-za|🏺'];
+const LONG_SENT=['Ema má mimi.','Mila má mimi.','Lea má malé mimi.','Mia má milé mimi.','Vilma má malé mimi.','Ela, máme mimi!','Ema je malá.','Mám malé mimi.'];
+const EXTRA_SENT=['Mama a Ema.','Ema a Ela.','Ema vie.','Mama vie.','Viem!','Mama, viem!','Lama a lev.','Lev i lama.',
+ 'Ema mala mimi.','Mila mala mimi.','Lama mala mimi.','Lev mal mimi.','Mama mele.','Mama mlela.','Ela mele.',
+ 'Ale lama vie.','Ale mama vie.','Iva i Ema.','Eva a Mia.','Emil a lev.','Emil vie.','Mimi a mama.','Vie mama?',
+ 'Tato a mama.','Ema má psa.','Tomi má loptu.','Mama melie mak.','Ema a Tina sú tu.'];
+const BADGES=[['🐣','Začiatočník'],['📖','Malý čitateľ'],['🔤','Pán písmenko'],['🦉','Múdra sova'],['🧩','Skladač slov'],
+ ['🔢','Počtár'],['🦁','Odvážny lev'],['🚀','Raketa'],['🐬','Šikovný delfín'],['🦖','Dino čitateľ'],['🧠','Mudrc'],['🌈','Dúhový hrdina'],
+ ['🦅','Orol'],['🤖','Robot počtár'],['🐉','Drak čítania'],['🛸','Vesmírnik'],['🏅','Šampión'],['🏆','Víťaz'],['👑','Kráľ čítania'],['💎','Diamant']];
+function badge(i){const b=BADGES[i%BADGES.length], lvl=Math.floor(i/BADGES.length);return{e:b[0],n:b[1]+(lvl?' '+(lvl+1)+'.':'')}}
+function badgeHTML(i,locked){const b=badge(i);return locked?`<div class="badge lock"><div class="b">🔒</div>?</div>`:`<div class="badge"><div class="b">${b.e}</div>${esc(b.n)}</div>`}
+const g=(m,f)=>S.girl?f:m;
+const PRAISE_M=['Výborne!','Super!','Bravo!','Paráda!','Si šikovný!','Skvelé!','Presne tak!'];
+const PRAISE_F=['Výborne!','Super!','Bravo!','Paráda!','Si šikovná!','Skvelé!','Presne tak!'];
+
+/* ---------- Pomocné ---------- */
+const main=document.getElementById('main');
+const $=id=>document.getElementById(id);
+const rand=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const cs=s=>S.upper&&!S.cursive?s.toLocaleUpperCase('sk'):s.toLocaleLowerCase('sk');
+const csw=s=>S.upper&&!S.cursive?s.toLocaleUpperCase('sk'):s;
+function applyFont(){document.body.classList.toggle('cursive',!!S.cursive)}
+function lettersOf(text){
+  const t=text.toLocaleLowerCase('sk').replace(/[^a-záäčďéíĺľňóôŕšťúýž]/g,''), out=[];
+  for(let i=0;i<t.length;i++){const two=t.slice(i,i+2);
+    if(two==='ch'||two==='dz'||two==='dž'){out.push(two.toLocaleUpperCase('sk'));i++}
+    else out.push(t[i].toLocaleUpperCase('sk'));}
+  return out;
+}
+function canRead(text){const k=new Set(S.known);return lettersOf(text).every(l=>k.has(l))}
+const nm=()=>S.name?', '+esc(S.name):'';
+function setTitle(t){document.getElementById('title').textContent=t}
+function updStars(){document.getElementById('stars').textContent='⭐ '+S.stars}
+function addStar(){S.stars++;save('stars');updStars()}
+function starWord(n){return n===1?'hviezdičku':(n>=2&&n<=4)?'hviezdičky':'hviezdičiek'}
+function queue(list){let q=[];return()=>{if(!q.length)q=shuffle(list);return q.pop()}}
+document.getElementById('homeBtn').onclick=()=>{stopSpeak();home()};
+
+/* ---------- Hlas ---------- */
+const hasTTS='speechSynthesis' in window;
+let voice=null, voiceList=[];
+// Slovenské názvy písmen – aby ich hlas vyslovil vždy po slovensky
+const LETTER_NAME={A:'a',Á:'dlhé á',Ä:'široké e',B:'bé',C:'cé',Č:'čé',D:'dé',Ď:'ďé',DZ:'dzé',DŽ:'džé',E:'e',É:'dlhé é',F:'ef',G:'gé',
+ H:'há',CH:'chá',I:'i',Í:'dlhé í',J:'jé',K:'ká',L:'el',Ĺ:'dlhé el',Ľ:'eľ',M:'em',N:'en',Ň:'eň',O:'o',Ó:'dlhé ó',Ô:'uo',P:'pé',
+ Q:'kvé',R:'er',Ŕ:'dlhé er',S:'es',Š:'eš',T:'té',Ť:'ťé',U:'u',Ú:'dlhé ú',V:'vé',W:'dvojité vé',X:'iks',Y:'ypsilon',Ý:'dlhé ypsilon',Z:'zet',Ž:'žet'};
+const VOWELS='AÁÄEÉIÍOÓÔUÚYÝ';
+const isVowel=L=>VOWELS.includes(L);
+const lname=L=>LETTER_NAME[L]||L.toLocaleLowerCase('sk');
+function voiceScore(v){
+  const l=(v.lang||'').toLowerCase().replace('_','-'), n=(v.name||'').toLowerCase();
+  let s;
+  if(l.startsWith('sk'))s=100; else return -1; // len slovenské hlasy
+  if(/natural|neural|online|premium|enhanced|vylepš/.test(n))s+=20;
+  if(/google/.test(n))s+=10;
+  if(/laura|viktoria|lukas|filip/.test(n))s+=5;
+  if(v.localService)s+=15; // stiahnutý v zariadení – nespadne na anglický hlas
+  return s;
+}
+function pickVoice(){
+  if(!hasTTS)return;
+  const vs=speechSynthesis.getVoices();
+  voiceList=vs.filter(v=>voiceScore(v)>=0).sort((a,b)=>voiceScore(b)-voiceScore(a));
+  const saved=store.get('voice','');
+  voice=voiceList.find(v=>v.name===saved)||voiceList[0]||null;
+}
+const hasSk=()=>!!(voice&&/^sk/i.test(voice.lang));
+if(hasTTS){pickVoice();speechSynthesis.onvoiceschanged=()=>{pickVoice();const vb=$('voiceBox');if(vb)vb.innerHTML=voiceBoxHTML()}}
+function stopSpeak(){try{hasTTS&&speechSynthesis.cancel()}catch(e){}}
+function say(text,rate){
+  if(!S.sound||!hasTTS||!text)return;
+  if(!voice)pickVoice();
+  try{
+    const busy=speechSynthesis.speaking||speechSynthesis.pending;
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang=voice?voice.lang:'sk-SK'; if(voice)u.voice=voice;
+    u.rate=Math.max(0.5,(rate||0.9)*(S.slow?0.8:1)); u.pitch=1;
+    // Chrome niekedy "zje" novú vetu hneď po zrušení starej – preto malá pauza
+    if(busy)setTimeout(()=>speechSynthesis.speak(u),80); else speechSynthesis.speak(u);
+  }catch(e){}
+}
+// Písmeno: názov + slabiky (aby počul, ako znie) + príklad
+// Písmeno: nikdy nehovorí názov ("em"), ale hlásku – samohlásku priamo,
+// spoluhlásku cez slabiky (ma, me, mi), lebo hlas nevie vysloviť samotné "m".
+function sayLetter(L,ex){
+  const l=L.toLocaleLowerCase('sk'); let t='';
+  if(isVowel(L)) t=l+'.';
+  else{
+    const v=S.known.filter(isVowel).slice(0,3);
+    t=(v.length?v:['A','E','I']).map(x=>l+x.toLocaleLowerCase('sk')).join(', ')+'.';
+  }
+  if(ex)t+=' '+ex+'.';
+  say(t,0.75);
+}
+const VOICE_HELP=`<div class="note warn"><b>Ako opraviť výslovnosť</b> (stačí raz, je to zadarmo):<br><br>
+  <b>Android:</b><br>
+  1. Nastavenia → Systém (pri Samsungu Všeobecná správa) → Jazyky → <b>Prevod textu na reč</b>.<br>
+  2. Preferovaný nástroj: <b>Rečové služby od Googlu</b>.<br>
+  3. Ťuknite na ⚙ pri nástroji → Inštalovať hlasové údaje → <b>Slovenčina</b> → stiahnuť.<br>
+  4. Jazyk nastavte na <b>Slovenčina (Slovensko)</b>.<br><br>
+  <b>iPhone / iPad:</b><br>
+  Nastavenia → Prístupnosť → <b>Čítanie a rozprávanie</b> (v starších iOS „Hovorený obsah“) → Hlasy → <b>Slovenčina</b> → <b>Laura</b> → stiahnite <b>Vylepšená</b>.<br><br>
+  <b>Počítač:</b> otvorte appku v prehliadači <b>Microsoft Edge</b>.<br><br>
+  Potom appku úplne zavrite, znova otvorte a dajte <b>Test výslovnosti</b>. Ak máte na výber viac hlasov, skúste v ponuke Hlas iný slovenský.</div>`;
+function voiceBoxHTML(){
+  if(!hasTTS)return '<div class="note">Tento prehliadač nevie čítať nahlas. Hra funguje aj bez zvuku – slová mu prečítajte vy.</div>';
+  const opts=voiceList.map(v=>`<option value="${esc(v.name)}" ${voice&&v.name===voice.name?'selected':''}>${esc(v.name)} (${esc(v.lang)})${v.localService?'':' ☁'}</option>`).join('');
+  let h=voiceList.length?`<div class="row"><span>Hlas</span><select id="voiceSel">${opts}</select></div>`:'';
+  const ok=store.get('vok',false);
+  h+=`<div class="vtest">
+    <b>Test výslovnosti</b>
+    <div class="muted">Má zaznieť: <b>me, le, mi, li, ve, vi</b>. Ak počujete „mi“ namiesto „me“ alebo anglický prízvuk, telefón používa anglický hlas.</div>
+    <button class="big-btn" id="vPlay" style="margin-top:8px">🔊 Prehrať test</button>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="big-btn" id="vYes" style="margin:0;font-size:17px;padding:12px;background:#c9f2b4">✅ Znie dobre</button>
+      <button class="big-btn" id="vNo" style="margin:0;font-size:17px;padding:12px;background:#ffd6d6">❌ Znie zle</button>
+    </div>
+    <div id="vHelp">${(!ok&&!hasSk())||store.get('vbad',false)?VOICE_HELP:''}</div>
+  </div>`;
+  return h;
+}
+
+/* ---------- Domov ---------- */
+function home(){
+  setTitle('🦉 Zvedavko');
+  const have=Math.floor(S.stars/5);
+  const shown=Math.max(have+1,4);
+  let st='';
+  for(let i=0;i<shown;i++) st+=badgeHTML(i,i>=have);
+  const toNext=5-(S.stars%5);
+  const ws=getWords().filter(x=>canRead(x.w)).length, ss=getSents().filter(x=>canRead(x[0])).length;
+  const sy=sylPool();
+  main.innerHTML=`
+   <div class="hello" style="display:flex;align-items:center;gap:8px"><span style="flex:1">Ahoj${nm()}! 👋</span><button class="toggle" id="hProf" style="min-width:0;font-size:15px">👥 Deti</button></div>
+   <div class="owlbox"><div class="o">🦉</div><div class="bub">${esc(owlHome())}</div></div>
+   <button class="daily ${dailyDone()?'done':''}" id="hD"><span style="font-size:40px">${dailyDone()?'✅':'🔥'}</span>
+     <div><b>Denná výzva</b><br><small>${dailyDone()?'Dnes splnená! Séria: '+streak()+' 🔥':'12 úloh · čítanie aj počítanie'+(streak()?' · séria '+streak()+' 🔥':'')}</small></div></button>
+   <div class="cards">
+     <button class="card c1" id="hL"><span class="big">🔤</span>Písmenká<small>${S.known.map(cs).join(' ')||'—'}</small></button>
+     <button class="card c2" id="hY" ${sy.length?'':'disabled'}><span class="big">🧩</span>Slabiky<small>${sy.slice(0,3).map(cs).join(' · ')||'—'}</small></button>
+     <button class="card c5 wide" id="hB" ${buildPool().length||sy.length?'':'disabled'}><span class="big">✏️</span><div>Skladaj slová<br><small>z písmeniek, ktoré poznáš</small></div></button>
+     <button class="card c3" id="hW" ${ws?'':'disabled'}><span class="big">🖼️</span>Slová<small>${ws} slov</small></button>
+     <button class="card c4" id="hS" ${ss?'':'disabled'}><span class="big">📖</span>Vety<small>${ss>300?'stovky':ss} viet</small></button>
+     <button class="card c2" id="hT" ${canStory()?'':'disabled'}><span class="big">📚</span>Príbehy<small>prečítaj a odpovedz</small></button>
+     <button class="card c1" id="hG"><span class="big">🎮</span>Hry<small>pexeso, blesk…</small></button>
+     <button class="card c6 wide" id="hM"><span class="big">🔢</span><div>Počítanie<br><small>0 – 100 · plus, mínus, hodiny, peniaze…</small></div></button>
+   </div>
+   ${hasTTS&&S.sound&&!store.get('vok',false)?'<div class="note warn">🔈 Pre rodiča: vyslovuje appka zle (napr. „mi“ namiesto „me“)? Dole v Nastaveniach je <b>Test výslovnosti</b> a návod na opravu.</div>':''}
+   <div class="panel">
+     <h3>Moje odznaky ${have?'('+have+')':''}</h3>
+     <div class="badges">${st}</div>
+     <div class="muted">Za každých 5 ⭐ získaš nový odznak. Ešte ${toNext} ⭐ do ďalšieho.</div>
+   </div>
+   <div class="panel">
+     <h3>🎁 Karty na tlač</h3>
+     ${have>=CARDS_AT?`<div class="muted" style="margin-bottom:8px">Odomknuté! Vyber si kartu, stiahni ju a vytlač.</div>
+       <div class="cards" style="grid-template-columns:1fr 1fr 1fr;gap:10px">
+         <button class="card c1" data-card="write" style="padding:12px 4px;font-size:16px"><span class="big" style="font-size:34px">✏️</span>Písanie</button>
+         <button class="card c3" data-card="color" style="padding:12px 4px;font-size:16px"><span class="big" style="font-size:34px">🎨</span>Maľovanie</button>
+         <button class="card c6" data-card="math" style="padding:12px 4px;font-size:16px"><span class="big" style="font-size:34px">🔢</span>Počítanie</button>
+       </div>
+       <button class="big-btn alt" data-card="diploma" style="margin-top:10px">🏅 Môj diplom</button>`
+     :`<div class="muted">Keď získaš ${CARDS_AT} odznakov, odomknú sa karty na písanie, maľovanie a počítanie na vytlačenie.</div>
+       <div class="bar"><i style="width:${Math.round(have/CARDS_AT*100)}%"></i></div>
+       <div class="muted" style="text-align:center">🎖️ ${have} z ${CARDS_AT}</div>`}
+   </div>
+   <div class="panel">
+     <h3>Pre rodiča</h3>
+     <div class="cards" style="grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+       <button class="card c3" id="hOv" style="padding:12px 4px;font-size:16px"><span class="big" style="font-size:30px">📊</span>Prehľad pokroku</button>
+       <button class="card c2" id="hProf2" style="padding:12px 4px;font-size:16px"><span class="big" style="font-size:30px">👥</span>Deti a prenos</button>
+     </div>
+     <h3>Písmenká, ktoré už poznáme</h3>
+     <div class="muted">Slová, vety aj slabiky v appke sú len z týchto písmen. Keď sa naučíte nové, ťuknite naň.</div>
+     <div class="chips">${ALL_KEYS.map(L=>`<button class="chip ${S.known.includes(L)?'on':''}" data-l="${L}">${L}</button>`).join('')}</div>
+   </div>
+   <div class="panel">
+     <h3>Naše slová a vety (napr. zo šlabikára)</h3>
+     <div class="muted">Napíšte slová, ktoré práve čítate v škole – oddeľte ich čiarkou. Appka ich zaradí do hier, len čo dieťa pozná všetky ich písmená.</div>
+     <textarea id="cWords" rows="3" placeholder="napr. mamka, lievik, Lela">${esc(store.get('cwords',''))}</textarea>
+     <div class="muted" style="margin-top:8px">Vety – každú na nový riadok:</div>
+     <textarea id="cSents" rows="4" placeholder="napr. Mama mele mak.">${esc(store.get('csents',''))}</textarea>
+     <div class="muted" id="cInfo"></div>
+   </div>
+   <div class="panel">
+     <h3>Nastavenia</h3>
+     <div class="note cloudNote" style="margin:0 0 8px">${cloudNoteHTML()}</div>
+     <div class="row"><span>Meno dieťaťa</span><input type="text" id="nameIn" maxlength="20" placeholder="napr. Jakub" value="${esc(S.name)}"></div>
+     <div class="row"><span>Dieťa</span><button class="toggle on" id="tGirl">${S.girl?'👧 Dievča':'👦 Chlapec'}</button></div>
+     <div class="row"><span>Písmo</span><button class="toggle on" id="tUpper">${S.cursive?'✍️ písané':S.upper?'VEĽKÉ':'malé'}</button></div>
+     <div class="row"><span>Farebné slabiky</span><button class="toggle ${S.split?'on':''}" id="tSplit">${S.split?'Áno':'Nie'}</button></div>
+     <div class="row"><span>Zvuk</span><button class="toggle ${S.sound?'on':''}" id="tSound">${S.sound?'Zapnutý':'Vypnutý'}</button></div>
+     <div class="row"><span>Rýchlosť reči</span><button class="toggle on" id="tSlow">${S.slow?'Pomaly':'Normálne'}</button></div>
+     <div id="voiceBox">${voiceBoxHTML()}</div>
+     ${hasTTS?'<button class="big-btn alt" id="tTest" style="margin-top:10px">🔊 Vyskúšať hlas</button>':''}
+     <div class="note">Tip: nech dieťa číta nahlas samo. Tlačidlo 🔊 je na kontrolu alebo nápovedu.</div>
+   </div>`;
+  main.querySelectorAll('[data-card]').forEach(b=>b.onclick=()=>cardsView(b.dataset.card));
+  $('hProf2').onclick=profilesView; $('hD').onclick=dailyGame; $('hT').onclick=storyGame; $('hG').onclick=gamesMenu; $('hProf').onclick=profilesView;
+  if($('hOv'))$('hOv').onclick=overview;
+  $('hL').onclick=()=>ourLetters(); $('hY').onclick=()=>sylView(); $('hB').onclick=buildMenu;
+  $('hW').onclick=wordsMenu2; $('hS').onclick=ourSent; $('hM').onclick=mathMenu;
+  main.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{
+    const L=b.dataset.l;
+    S.known=S.known.includes(L)?S.known.filter(x=>x!==L):ALL_KEYS.filter(x=>x===L||S.known.includes(x));
+    save('known');const y=window.scrollY;home();window.scrollTo(0,y);
+  });
+  const cInfo=()=>{
+    const cw=customWords(), cs2=customSents(), okw=cw.filter(canRead).length, oks=cs2.filter(canRead).length;
+    $('cInfo').textContent=(cw.length||cs2.length)?`V hrách: ${okw} z ${cw.length} slov, ${oks} z ${cs2.length} viet. Ostatné majú písmená, ktoré ešte nepoznáte.`:'';
+  };
+  cInfo();
+  $('cWords').onchange=()=>{store.set('cwords',$('cWords').value);cInfo();rerCounts()};
+  $('cSents').onchange=()=>{store.set('csents',$('cSents').value);cInfo();rerCounts()};
+  function rerCounts(){
+    const ws=getWords().filter(x=>canRead(x.w)).length, ss=getSents().filter(x=>canRead(x[0])).length;
+    $('hW').querySelector('small').textContent=ws+' slov'; $('hS').querySelector('small').textContent=(ss>300?'stovky':ss)+' viet';
+    $('hW').disabled=!ws; $('hS').disabled=!ss;
+  }
+  const nameIn=$('nameIn');
+  nameIn.onchange=nameIn.onblur=()=>{S.name=nameIn.value.trim();save('name');document.querySelector('.hello').innerHTML=`Ahoj${nm()}! 👋`};
+  const rer=()=>{const y=window.scrollY;home();window.scrollTo(0,y)};
+  $('tGirl').onclick=()=>{S.girl=!S.girl;save('girl');rer()};
+  $('tUpper').onclick=()=>{ // VEĽKÉ → malé → písané → VEĽKÉ
+    if(S.cursive){S.cursive=false;S.upper=true}else if(S.upper){S.upper=false}else{S.cursive=true}
+    save('upper');save('cursive');applyFont();rer()};
+  $('tSplit').onclick=()=>{S.split=!S.split;save('split');rer()};
+  $('tSound').onclick=()=>{S.sound=!S.sound;save('sound');rer();if(S.sound)say('Zvuk je zapnutý.')};
+  $('tSlow').onclick=()=>{S.slow=!S.slow;save('slow');rer();say('Mama, lama, mimi.')};
+  if($('tTest'))$('tTest').onclick=()=>{pickVoice();say('Ahoj'+(S.name?' '+S.name:'')+'! Ideme čítať. Mama, lama, lev, mimi.')};
+}
+
+/* ---------- Písmenká ---------- */
+function highlight(word,L){
+  const w=cs(word), l=cs(L), i=w.indexOf(l);
+  if(i<0)return esc(w);
+  return esc(w.slice(0,i))+'<b>'+esc(w.slice(i,i+l.length))+'</b>'+esc(w.slice(i+l.length));
+}
+function spk_(text){const b=document.getElementById('spk');if(b)b.onclick=()=>say(text)}
+
+/* ---------- Slabiky ---------- */
+function sylView(c){
+  setTitle('Slabiky');
+  const C=S.known.filter(l=>!isVowel(l)), V=S.known.filter(isVowel);
+  if(!C.length||!V.length){main.innerHTML='<div class="note">Na slabiky treba aspoň jednu samohlásku a jednu spoluhlásku.</div>';return}
+  c=C.includes(c)?c:C[0];
+  main.innerHTML=`
+    <div class="show" id="sshow"><div class="eq"><span class="c">${cs(c)}</span> + <span class="v">${cs(V[0])}</span> = ${cs(c+V[0])}</div><div class="muted">Ťukni na slabiku a počúvaj</div></div>
+    <div class="sylgrid" style="grid-template-columns:repeat(${Math.min(C.length,5)},1fr);margin-bottom:14px">${C.map(x=>`<button class="key ${x===c?'sel':''}" data-c="${x}">${cs(x)}</button>`).join('')}</div>
+    <div class="sylgrid" style="grid-template-columns:repeat(${Math.min(V.length,5)},1fr)">${V.map(v=>`<button class="key" data-v="${v}">${cs(c+v)}</button>`).join('')}</div>
+    <button class="big-btn alt" id="sg">🎮 Hra: Čo počuješ?</button>`;
+  main.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{sylView(b.dataset.c);sayLetter(b.dataset.c)});
+  main.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{
+    const v=b.dataset.v;
+    $('sshow').innerHTML=`<div class="eq"><span class="c">${cs(c)}</span> + <span class="v">${cs(v)}</span> = ${cs(c+v)}</div>`;
+    say((c+v).toLocaleLowerCase('sk'),0.7);
+  });
+  $('sg').onclick=sylGame;
+  if(!hasTTS)$('sg').style.display='none';
+}
+function sylMaker(){
+  const pool=sylPool(), next=wqueue(pool,x=>['S:'+x]);
+  return()=>{
+    const t=next(), c=t.slice(0,-1), v=t.slice(-1);
+    const near=pool.filter(x=>x!==t&&(x.startsWith(c)||x.endsWith(v)));
+    const d=shuffle(near.length>=2?near:pool.filter(x=>x!==t)).slice(0,2);
+    const spk=t.toLocaleLowerCase('sk');
+    return{label:'🧩 Slabiky',
+      prompt:`<div class="q">Ktorú slabiku počuješ?</div><button class="sp" id="spk">🔊 Ešte raz</button>`,
+      optClass:'txt', options:shuffle([t,...d]).map(o=>({html:esc(cs(o)),correct:o===t})),
+      auto:spk, ok:spk, track:['S:'+t], bind(){$('spk').onclick=()=>say(spk,0.7)}
+    };
+  };
+}
+function sylGame(){setTitle('Čo počuješ?');runQuiz({n:8,again:sylGame,make:sylMaker()})}
+
+/* ---------- Slová ---------- */
+function wordHTML(w){
+  const p=w.split('-');
+  if(!S.split)return esc(csw(p.join('')));
+  return p.map((x,i)=>`<span class="syl s${i%2}">${esc(csw(x))}</span>`).join(p.length>1?'<span class="dot">·</span>':'');
+}
+/* ---------- Vety ---------- */
+function sentHTML(s){
+  const shown=S.upper&&!S.cursive?s.toLocaleUpperCase('sk'):s;
+  return `<div class="sentence">${shown.split(' ').map((w,i)=>`<span class="w" data-w="${i}">${esc(w)}</span>`).join(' ')}</div>
+    <div class="muted" style="margin-top:6px">Ťukni na slovo, ktoré nevieš.</div>
+    <button class="sp" id="spk">🔊 Prečítaj mi</button>`;
+}
+function bindSent(s,m){
+  const words=s.split(' ');
+  spk_(s);
+  m.querySelectorAll('.w').forEach(x=>x.onclick=()=>say(words[+x.dataset.w].replace(/[.,!?]/g,''),0.7));
+}
+
+/* ---------- Naše písmenká ---------- */
+function syllabify(word){
+  // jednoduché delenie na slabiky (na farebné slabiky pri vlastných slovách)
+  const t=word, low=t.toLocaleLowerCase('sk'), V='aáäeéiíoóôuúyý', units=[];
+  for(let i=0;i<low.length;i++){
+    const two=low.slice(i,i+2);
+    if(['ch','dz','dž','ia','ie','iu','au','ou'].includes(two)){units.push(t.slice(i,i+2));i++}else units.push(t[i]);
+  }
+  const isV=u=>V.includes(u.toLocaleLowerCase('sk')[0])&&!(u.length===2&&!V.includes(u.toLocaleLowerCase('sk')[1]));
+  const vi=units.map((u,i)=>isV(u)?i:-1).filter(i=>i>=0);
+  if(vi.length<2)return t;
+  const cuts=[];
+  for(let k=0;k<vi.length-1;k++){const gap=vi[k+1]-vi[k]-1;cuts.push(gap<=1?vi[k]+1:vi[k]+2)}
+  let out='',prev=0;cuts.forEach(c=>{out+=units.slice(prev,c).join('')+'-';prev=c});
+  return out+units.slice(prev).join('');
+}
+function customWords(){return (store.get('cwords','')||'').split(/[\n,;]+/).map(x=>x.trim().replace(/[.!?]/g,'')).filter(x=>x&&!/\s/.test(x))}
+function customSents(){return (store.get('csents','')||'').split(/\n+/).map(x=>x.trim()).filter(Boolean).map(x=>/[.!?]$/.test(x)?x:x+'.')}
+/* Veľká banka slov – appka z nej berie len tie, ktoré dieťa vie prečítať.
+   Keď pribudnú písmenká, automaticky pribudnú aj slová. */
+const BANK=('mlel mleli vieme melie lial liala vlial vliala Ali Alma Lili lila leva mile Amália mávala mával mávali '+
+ 'Oto Ola Olívia Ivo Leo Milo Lola Viola volal volala volali malo olovo lov '+
+ 'osa sám sami sila seno sem sa si so les lis misa sliva veslo Saša slama sval sólo Samo oslava slovo Silvia salám osol Sima Ivetka '+
+ 'tato teta tma Tomi Tina tam tu toto sito list most mesto Ota telo leto svetlo tetu motá '+
+ 'pila pole papá Pavol Pavla pomelo lopata lupa pasta lampa pilot Peter pero mapa '+
+ 'ulica mamu lamu Emu sovu osu lupa '+
+ 'Jana Jano ja je jama máj moja tvoja ty my vy lyže '+
+ 'noha Nina Nela meno okno sen len ten tento nemá nie Anna Ivana Milan Elena Natália nos '+
+ 'kosa mak kino Katka kakao Lukáš mlieko kapusta '+
+ 'deti dedo dub Dana voda dva medveď dúha Adam Ida '+
+ 'rak ruža Roman ráno more Mária ryža tráva').split(' ');
+const BANK_EMOJI={medveď:'🐻',dúha:'🌈',rak:'🦀',ruža:'🌹',more:'🌊',ryža:'🍚',pero:'🖊️',voda:'💧',lupa:'🔍',oslava:'🎉',mesto:'🏙️',most:'🌉',lyže:'🎿',sval:'💪',mapa:'🗺️',noha:'🦶',kino:'🎬',mlieko:'🥛',kapusta:'🥬',lampa:'💡',pilot:'🧑‍✈️'};
+function getWords(){const seen=new Set(),out=[];
+  for(const s of [...customWords().map(w=>syllabify(w)+'|'),...EXTRA_WORDS,...LONG_WORDS,...BANK.map(w=>syllabify(w)+'|'+(BANK_EMOJI[w]||'')),...WORDS[1],...WORDS[2],...WORDS[3]]){
+    const[w,e]=s.split('|');const key=w.replace(/-/g,'').toLocaleLowerCase('sk');
+    if(seen.has(key))continue;seen.add(key);out.push({w,e:e||''});
+  }return out}
+/* Generátor viet – skladá stovky rôznych viet, aby sa ich dieťa nenaučilo naspamäť */
+const G_F=['Ema','Ela','Eva','Iva','Mila','Mia','Lea','Vilma','mama','lama','Lili','Alma','Amália','Emília','Lívia','teta','sova','osa','koza','Tina','Saša','Jana','Nina','Nela','Anna','Dana','Mária','Ola','Lola'];
+const G_M=['Emil','lev','Ali','tato','Tomi','Oto','pes','Ivo','Leo','Samo','Milo','Pavol','Jano','Milan','Adam','dedo','Lukáš','Roman','Peter'];
+const G_PRES=['vie','mele','má mimi','má leva','spí','sedí','volá mamu','pije mlieko','papá','má auto','má loptu','má lampu','má mapu','má pero','vidí more','je tu','je tam','je doma','ide domov','pláva','skáče','maľuje','číta','spieva'];
+const G_PAST=[['mala mimi','mal mimi'],['mala leva','mal leva'],['mlela','mlel'],['mávala','mával'],['volala','volal'],['spala','spal'],['sedela','sedel'],['mala auto','mal auto'],['videla more','videl more'],['vliala vodu','vlial vodu'],['mala lampu','mal lampu'],['mala slivu','mal slivu'],['pila mlieko','pil mlieko'],['papala','papal'],['volala mamu','volal mamu']];
+const G_PL=['mali mimi','mleli','mávali','volali','spali','sedeli','papali','vedia','melú'];
+const cap=t=>t.charAt(0).toLocaleUpperCase('sk')+t.slice(1);
+let genCache={key:'',list:[]};
+function genSentences(){
+  const key=S.known.join('');
+  if(genCache.key===key)return genCache.list;
+  const out=new Set(), F=G_F.filter(canRead), M=G_M.filter(canRead), A=[...F,...M];
+  const pres=G_PRES.filter(canRead), pastF=G_PAST.filter(p=>canRead(p[0])).map(p=>p[0]), pastM=G_PAST.filter(p=>canRead(p[1])).map(p=>p[1]), pl=G_PL.filter(canRead);
+  const add=t=>{if(canRead(t)&&!/^Lev .*leva/.test(t))out.add(t)};
+  A.forEach(x=>{pres.forEach(v=>add(cap(x)+' '+v+'.'))});
+  F.forEach(x=>pastF.forEach(v=>add(cap(x)+' '+v+'.')));
+  M.forEach(x=>pastM.forEach(v=>add(cap(x)+' '+v+'.')));
+  A.forEach(x=>A.forEach(y=>{if(x!==y){add(cap(x)+' a '+y+'.');add(cap(x)+' i '+y+'.');pl.forEach(v=>add(cap(x)+' a '+y+' '+v+'.'))}}));
+  A.forEach(x=>pres.forEach(v=>add('Ale '+x+' '+v+'.')));
+  A.forEach(x=>A.forEach(y=>{if(x!==y&&/^[A-ZÁ-Ž]/.test(x))pres.slice(0,4).forEach(v=>add(cap(x)+', '+y+' '+v+'!'))}));
+  genCache={key,list:[...out]};
+  return genCache.list;
+}
+function getSents(){const seen=new Set();return [...customSents(),...EXTRA_SENT,...LONG_SENT,...genSentences()].map(s=>[s,'']).concat(SENTENCES).filter(x=>!seen.has(x[0])&&seen.add(x[0]))}
+const CONFLICT={'🏠':'🏡','🏡':'🏠'};
+const ALL_KEYS=LETTERS.map(x=>x[0]);
+
+function exampleFor(L){
+  const l=L.toLocaleLowerCase('sk'), pl=x=>x.w.replace(/-/g,'').toLocaleLowerCase('sk');
+  const ws=getWords().filter(x=>x.e&&canRead(x.w));
+  const f=ws.find(x=>pl(x).startsWith(l))||ws.find(x=>pl(x).includes(l));
+  if(f)return[f.w.replace(/-/g,''),f.e];
+  const d=LETTERS.find(x=>x[0]===L); return d&&d[1]&&canRead(d[1])?[d[1],d[2]]:null;
+}
+function ourLetters(){
+  setTitle('Naše písmenká');
+  main.innerHTML=`
+    <div class="tabs"><button class="tab on">Písmenká</button><button class="tab" id="tF" ${S.known.length<2?'disabled':''}>🎮 Nájdi písmeno</button></div>
+    <div class="show" id="lshow"><div class="muted" style="font-size:20px">Ťukni na písmenko 👇</div></div>
+    <div class="sylgrid" style="grid-template-columns:repeat(3,1fr)">${S.known.map(L=>`<button class="key" style="font-size:44px;padding:18px 0" data-l="${L}">${esc(cs(L))}</button>`).join('')}</div>`;
+  $('tF').onclick=ourLetterGame;
+  main.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{
+    main.querySelectorAll('.key.sel').forEach(k=>k.classList.remove('sel')); b.classList.add('sel');
+    const L=b.dataset.l, ex=exampleFor(L), up=L.charAt(0)+L.slice(1).toLocaleLowerCase('sk');
+    $('lshow').innerHTML=`<div class="lt">${esc(up)}<small>${esc(L.toLocaleLowerCase('sk'))}</small><span class="curl">${esc(up)} ${esc(L.toLocaleLowerCase('sk'))}<span class="curlbl">písané</span></span></div>`+(ex?`<div class="ex">${ex[1]} ${highlight(ex[0],L)}</div>`:'');
+    sayLetter(L,ex?ex[0]:'');
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+}
+function ourLetterGame(){setTitle('Nájdi písmeno');runQuiz({n:8,again:ourLetterGame,make:letterMaker()})}
+function letterMaker(){
+  const next=wqueue(S.known,L=>['L:'+L]);
+  return function(){
+    const t=next();
+    const opts=shuffle([t,...shuffle(S.known.filter(x=>x!==t)).slice(0,3)]);
+    let spk,ok,hint;
+    if(isVowel(t)){const l=t.toLocaleLowerCase('sk');spk='Nájdi písmeno '+l+'.';ok=l;hint='Nájdi písmeno'}
+    else{
+      const st=w=>w.replace(/-/g,'').toLocaleLowerCase('sk').startsWith(t.toLocaleLowerCase('sk'));
+      const cand=getWords().filter(x=>canRead(x.w)&&st(x.w));
+      const pick=cand.length?rand(cand.filter(x=>x.e).length?cand.filter(x=>x.e):cand):null;
+      const w=pick?pick.w.replace(/-/g,''):(t+(S.known.find(isVowel)||'a')).toLocaleLowerCase('sk');
+      spk='Ktorým písmenkom začína '+w+'?';ok=w;
+      hint=pick&&pick.e?`Čím začína <span style="font-size:54px;vertical-align:middle">${pick.e}</span>?`:`Čím začína <b>${esc(csw(w))}</b>?`;
+    }
+    return{prompt:`<div class="q">${hint} <span id="hid"></span> <button class="reveal" id="rv">👀</button></div><button class="sp" id="spk">🔊 Počúvaj</button>`,
+      optClass:'txt '+(opts.length>=4?'four':''),options:opts.map(o=>({html:esc(cs(o)),correct:o===t})),
+      auto:spk,ok,track:['L:'+t],label:'🔤 Písmenká',bind(){spk_(spk);$('rv').onclick=()=>{$('hid').textContent=cs(t)}}};
+  };
+}
+
+/* ---------- Skladanie ---------- */
+function buildPool(){ // bežné slová (nie mená), ktoré vie prečítať
+  return getWords().filter(x=>canRead(x.w)&&x.w[0]===x.w[0].toLocaleLowerCase('sk')&&lettersOf(x.w).length<=6);
+}
+function sylPool(){
+  const V=S.known.filter(isVowel), C=S.known.filter(l=>!isVowel(l));
+  const out=[];C.forEach(c=>V.forEach(v=>out.push(c+v)));return out;
+}
+function buildMenu(){
+  setTitle('Skladaj');
+  const sp=sylPool(), bp=buildPool();
+  main.innerHTML=`<div class="levels">
+     <button class="level c2" data-m="syl" ${sp.length?'':'disabled'}><span style="font-size:40px">🧩</span><div>Slabiky<span>počúvaj a poskladaj: ${sp.slice(0,4).map(cs).join(', ')}…</span></div></button>
+     <button class="level c1" data-m="copy" ${bp.length?'':'disabled'}><span style="font-size:40px">👀</span><div>Slová podľa vzoru<span>pozri sa a poskladaj rovnaké slovo</span></div></button>
+     <button class="level c4" data-m="dict" ${bp.length?'':'disabled'}><span style="font-size:40px">👂</span><div>Slová bez vzoru<span>pozri obrázok, počúvaj a poskladaj</span></div></button>
+   </div>
+   <div class="note">Dieťa ťuká na písmenká v správnom poradí. Zlé písmenko sa nepoužije, môže skúsiť iné. Hviezdička je za slovo bez chyby.</div>`;
+  main.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>buildGame(b.dataset.m));
+}
+function buildGame(mode){
+  setTitle(mode==='syl'?'Skladaj slabiky':'Skladaj slová');
+  const items=mode==='syl'?sylPool().map(x=>({w:x.toLocaleLowerCase('sk'),e:''})):buildPool();
+  const next=wqueue(items,x=>[mode==='syl'?'S:'+x.w.toLocaleUpperCase('sk'):'W:'+x.w.replace(/-/g,'').toLocaleLowerCase('sk')]);
+  runQuiz({n:mode==='syl'?8:6,again:()=>buildGame(mode),make(){
+    const t=next(), plain=t.w.replace(/-/g,''), chars=lettersOf(plain);
+    const showTmpl=mode==='copy';
+    const top=(t.e&&mode!=='syl'?`<div class="pic">${t.e}</div>`:'')+
+      (showTmpl?`<div class="tmpl">${wordHTML(t.w)}</div>`:`<div class="q">${mode==='syl'?'Poskladaj slabiku':'Poskladaj slovo'} <span id="hid"></span> <button class="reveal" id="rv">👀</button></div>`)+
+      `<button class="sp" id="spk">🔊 Počúvaj</button>`;
+    return{prompt:top,ok:plain,auto:plain,track:[(mode==='syl'?'S:'+plain.toLocaleUpperCase('sk'):'W:'+plain.toLocaleLowerCase('sk'))],custom:(box,finish)=>{
+      const others=shuffle(S.known.filter(l=>!chars.includes(l))).slice(0,chars.length<=2?1:2);
+      const tiles=shuffle([...chars,...others]);
+      box.innerHTML=`<div class="slots">${chars.map((_,i)=>`<div class="slot ${i===0?'next':''}" data-s="${i}"></div>`).join('')}</div>
+        <div class="tiles">${tiles.map((l,i)=>`<button class="tile" data-t="${i}">${esc(cs(l))}</button>`).join('')}</div>`;
+      let pos=0, mistakes=0;
+      const parts=t.w.split('-'), ends={};let acc=0;
+      parts.forEach(pt=>{acc+=lettersOf(pt).length;ends[acc]=pt.toLocaleLowerCase('sk')});
+      box.querySelectorAll('.tile').forEach(b=>b.onclick=()=>{
+        if(pos>=chars.length)return;
+        const l=tiles[+b.dataset.t];
+        if(l===chars[pos]){
+          const sl=box.querySelector(`[data-s="${pos}"]`); sl.textContent=cs(l); sl.classList.remove('next'); sl.classList.add('f');
+          b.classList.add('used'); pos++;
+          const nx=box.querySelector(`[data-s="${pos}"]`); if(nx)nx.classList.add('next');
+          if(pos===chars.length) finish(mistakes===0); else if(ends[pos]) say(ends[pos],0.8);
+        }else{
+          mistakes++; b.classList.remove('bad'); void b.offsetWidth; b.classList.add('bad'); setTimeout(()=>b.classList.remove('bad'),450);
+          say('Skús iné písmenko.');
+        }
+      });
+    },bind(){
+      $('spk').onclick=()=>say(plain,0.75);
+      const rv=$('rv'); if(rv)rv.onclick=()=>{$('hid').innerHTML=wordHTML(t.w)};
+    }};
+  }});
+}
+
+function wordsMenu2(){
+  setTitle('Slová');
+  const n=getWords().filter(x=>canRead(x.w)).length, sp=sylPool();
+  main.innerHTML=`<div class="levels">
+     <button class="level c3" id="wReal" ${n?'':'disabled'}><span style="font-size:40px">🖼️</span><div>Skutočné slová<span>${n} slov – vždy v inom poradí</span></div></button>
+     <button class="level c2" id="wFake" ${sp.length?'':'disabled'}><span style="font-size:40px">🎲</span><div>Vymyslené slová<span>napr. ${sp.length?pseudoWord().replace(/-/g,'').toLocaleUpperCase('sk'):'—'} – čítaj po slabikách</span></div></button>
+   </div>
+   <div class="note">Vymyslené slová nemajú význam, takže sa nedajú uhádnuť ani naučiť naspamäť – dieťa ich musí naozaj prečítať po slabikách.</div>`;
+  $('wReal').onclick=ourWords; $('wFake').onclick=pseudoGame;
+}
+function pseudoWord(){
+  const sp=sylPool(), V=S.known.filter(isVowel), C=S.known.filter(l=>!isVowel(l));
+  const n=Math.random()<.55?2:3; const parts=[];
+  for(let i=0;i<n;i++)parts.push(rand(sp).toLocaleLowerCase('sk'));
+  if(C.length&&Math.random()<.3)parts[n-1]+=rand(C).toLocaleLowerCase('sk');
+  if(V.length&&Math.random()<.15)parts.unshift(rand(V).toLocaleLowerCase('sk'));
+  return parts.join('-');
+}
+function pseudoMaker(){
+  const real=new Set(getWords().map(x=>x.w.replace(/-/g,'').toLocaleLowerCase('sk')));
+  let last='';
+  return()=>{
+    // vymyslené slová skladá častejšie zo slabík, ktoré dieťaťu nejdú
+    let w,t=0,best=null,bw=-1;
+    for(let k=0;k<6;k++){do{w=pseudoWord()}while((real.has(w.replace(/-/g,''))||w===last)&&++t<30);
+      const wt=weight(w.split('-').map(x=>'S:'+x.toLocaleUpperCase('sk')))*Math.random();if(wt>bw){bw=wt;best=w}}
+    w=best;last=w;
+    const plain=w.replace(/-/g,''), parts=w.split('-');
+    return{label:'🎲 Vymyslené slovo',prompt:`<div class="muted" style="font-size:18px;margin-bottom:6px">Prečítaj po slabikách:</div><div class="word">${wordHTML(w)}</div><button class="sp" id="spk">🔊 Skontroluj</button>`,
+      read:true,ok:plain,track:parts.filter(x=>x.length===2).map(x=>'S:'+x.toLocaleUpperCase('sk')),
+      bind(){$('spk').onclick=()=>{say(parts.join(', '),0.6);setTimeout(()=>say(plain,0.8),parts.length*700+300)}}};
+  };
+}
+function pseudoGame(){setTitle('Vymyslené slová');runQuiz({n:10,again:pseudoGame,make:pseudoMaker()})}
+function wordMaker(){
+  const pool=getWords().filter(x=>canRead(x.w)), pics=pool.filter(x=>x.e);
+  const next=wqueue(pool,x=>['W:'+x.w.replace(/-/g,'').toLocaleLowerCase('sk')]);
+  return()=>{
+    const t=next(), plain=t.w.replace(/-/g,''), parts=t.w.split('-'), tr=['W:'+plain.toLocaleLowerCase('sk')];
+    const hint=`<button class="sp" id="spk">🔊 Skontroluj</button>`;
+    const bind=()=>{$('spk').onclick=()=>{say(parts.join(', '),0.6);setTimeout(()=>say(plain),parts.length*700+300)}};
+    if(t.e){
+      const ok=x=>x.e&&x.e!==t.e&&CONFLICT[t.e]!==x.e;
+      let dp=pics.filter(ok); if(dp.length<2)dp=getWords().filter(ok);
+      const others=shuffle(dp).slice(0,2);
+      return{label:'🖼️ Slovo',prompt:`<div class="word">${wordHTML(t.w)}</div>${hint}`,
+        options:shuffle([t,...others]).map(o=>({html:o.e,correct:o.e===t.e})),ok:plain,track:tr,bind};
+    }
+    return{label:'🖼️ Slovo',prompt:`<div class="muted" style="font-size:18px;margin-bottom:6px">Prečítaj nahlas:</div><div class="word">${wordHTML(t.w)}</div>${hint}`,
+      read:true,ok:plain,track:tr,bind};
+  };
+}
+function ourWords(){setTitle('Naše slová');runQuiz({n:10,again:ourWords,make:wordMaker()})}
+function sentMaker(){
+  const pool=getSents().filter(x=>canRead(x[0])), pics=pool.filter(x=>x[1]);
+  const next=queue(pool);
+  return()=>{
+    const [s,e]=next();
+    const bind=m=>bindSent(s,m);
+    if(e){
+      const dp=(pics.length>=3?pics:SENTENCES).filter(x=>x[1]!==e);
+      return{label:'📖 Veta',prompt:sentHTML(s),options:shuffle([e,...shuffle(dp).slice(0,2).map(x=>x[1])]).map(o=>({html:o,correct:o===e})),ok:'',track:['T:veta'],bind};
+    }
+    return{label:'📖 Veta',prompt:sentHTML(s),read:true,ok:'',track:['T:veta'],bind};
+  };
+}
+function ourSent(){setTitle('Naše vety');runQuiz({n:8,again:ourSent,make:sentMaker()})}
+
+/* ---------- Počítanie ---------- */
+const NUM=['nula','jeden','dva','tri','štyri','päť','šesť','sedem','osem','deväť','desať'];
+const THINGS=['🍎','🍓','⚽','🐞','🌟','🚗','🐟','🍌','🎈','🐥','🍪','🌸'];
+function groupHTML(n,e,goneFrom){
+  let h='';for(let i=0;i<n;i++)h+=goneFrom!=null&&i>=goneFrom?`<span class="gone"><i>${e}</i></span>`:`<span>${e}</span>`;
+  return n?`<span class="grp">${h}</span>`:`<span class="grp" style="font-size:22px;color:#999">nič</span>`;
+}
+// Rozsahy čísel: [od, do]
+const BANDS=[[0,5],[0,10],[0,20],[10,20],[20,30],[30,40],[40,50],[50,60],[60,70],[70,80],[80,90],[90,100],[0,100]];
+const bandLabel=b=>b[0]+'–'+b[1];
+function curBand(){const b=store.get('mband',null);if(b&&b.length===2)return b;return [0,S.mmax===10?10:5]}
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+// Príklad v danom rozsahu; výsledok aj prvé číslo ostanú v rozsahu
+function genProblem(op,band,cross){
+  const [lo,hi]=band, small=hi<=10;
+  for(let t=0;t<300;t++){
+    let a,b,r;
+    if(op==='plus'){
+      r=ri(Math.max(lo,1),hi);
+      if(small){a=ri(Math.random()<.1?0:1,r);b=r-a;if((a===0||b===0)&&Math.random()<.8)continue}
+      else{a=ri(lo>0?lo:1,r-1);b=r-a}
+    }else{
+      a=ri(Math.max(lo,1),hi);
+      if(small){b=ri(Math.random()<.1?0:1,a);r=a-b}
+      else{r=ri(lo,a-1);b=a-r}
+    }
+    if(!small&&!cross){ // bez prechodu cez desiatku
+      if(op==='plus'&&(a%10)+(b%10)>10)continue;
+      if(op==='minus'&&(a%10)<(b%10))continue;
+    }
+    return{a,b,r};
+  }
+  return op==='plus'?{a:lo,b:1,r:lo+1}:{a:hi,b:1,r:hi-1};
+}
+// Kocky: po desiatkach v riadkoch (na pomoc pri väčších číslach)
+function cellsHTML(n,cls,goneFrom){
+  let h='<span class="cells">';
+  for(let i=0;i<n;i++){
+    if(i%10===0)h+=(i?'</span>':'')+'<span class="ten">';
+    h+=`<i class="${cls||''}${goneFrom!=null&&i>=goneFrom?' x':''}"></i>`;
+  }
+  return h+(n?'</span>':'<span style="font-size:20px;color:#999">nič</span>')+'</span>';
+}
+function padOptions(r,hi){
+  const out=[];for(let i=0;i<=hi;i++)out.push({html:String(i),correct:i===r});return out;
+}
+function mathMenu(){
+  setTitle('Počítanie');
+  const band=curBand(), cross=store.get('mcross',false);
+  main.innerHTML=`<div class="levels">
+     <button class="level c1" data-m="count"><span style="font-size:40px">🔢</span><div>Koľko ich je?<span>spočítaj obrázky / kocky</span></div></button>
+     <button class="level c3" data-m="plus"><span style="font-size:40px">➕</span><div>Plus<span>${band[1]<=10?'napr. 3 + 2':`napr. ${band[0]+3} + 4`}</span></div></button>
+     <button class="level c4" data-m="minus"><span style="font-size:40px">➖</span><div>Mínus<span>${band[1]<=10?'napr. 5 − 2':`napr. ${band[0]+7} − 4`}</span></div></button>
+     <button class="level c2" data-m="mix"><span style="font-size:40px">🔀</span><div>Plus aj mínus<span>pomiešané</span></div></button>
+     <button class="level c5" data-m="cmp"><span style="font-size:40px">⚖️</span><div>Porovnávanie<span>väčšie, menšie, rovná sa</span></div></button>
+     <button class="level c1" data-m="line"><span style="font-size:40px">📏</span><div>Číselná os<span>ktoré číslo chýba?</span></div></button>
+     <button class="level c3" data-m="word"><span style="font-size:40px">📝</span><div>Slovné úlohy<span>Ema mala 5 jabĺk…</span></div></button>
+     <button class="level c6" data-m="clock"><span style="font-size:40px">🕐</span><div>Hodiny<span>${band[1]>10?'celé a pol hodiny':'celé hodiny'}</span></div></button>
+     <button class="level c4" data-m="money"><span style="font-size:40px">💶</span><div>Peniaze<span>koľko eur je spolu?</span></div></button>
+   </div>
+   <div class="panel">
+     <h3>Čísla od – do</h3>
+     <div class="chips">${BANDS.map((b,i)=>`<button class="chip ${b[0]===band[0]&&b[1]===band[1]?'on':''}" data-b="${i}" style="min-width:74px;font-size:17px">${bandLabel(b)}</button>`).join('')}</div>
+     ${band[1]>10&&(band[0]===0)?`<div class="row" style="margin-top:8px"><span>Prechod cez desiatku<br><small class="muted">napr. 8 + 5, 13 − 6</small></span><button class="toggle ${cross?'on':''}" id="tCross">${cross?'Áno':'Nie'}</button></div>`:''}
+     <div class="row"><span>Obrázky na pomoc</span><button class="toggle ${S.mpics?'on':''}" id="tPics">${S.mpics?'Áno':'Nie'}</button></div>
+   </div>`;
+  main.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>mathGame(b.dataset.m));
+  main.querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{store.set('mband',BANDS[+b.dataset.b]);S.mmax=BANDS[+b.dataset.b][1];save('mmax');const y=window.scrollY;mathMenu();window.scrollTo(0,y)});
+  if($('tCross'))$('tCross').onclick=()=>{store.set('mcross',!cross);mathMenu()};
+  $('tPics').onclick=()=>{S.mpics=!S.mpics;save('mpics');mathMenu()};
+}
+// Klávesnica na čísla (pri rozsahu nad 10)
+function keypadUI(box,r,finish,onShow){
+  window._lastAns=r;
+  box.innerHTML=`<div class="ansbox" id="ans">&nbsp;</div>
+    <div class="keypad">${[1,2,3,4,5,6,7,8,9].map(d=>`<button class="kbtn" data-d="${d}">${d}</button>`).join('')}
+    <button class="kbtn" data-d="del">⌫</button><button class="kbtn" data-d="0">0</button><button class="kbtn okk" data-d="ok">✔</button></div>`;
+  let v='', mistakes=0, done=false;
+  const show=()=>{$('ans').textContent=v||' '};
+  box.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{
+    if(done)return; const d=b.dataset.d;
+    if(d==='del')v=v.slice(0,-1);
+    else if(d==='ok'){
+      if(!v)return;
+      if(+v===r){done=true;$('ans').classList.remove('bad');$('ans').classList.add('good');onShow&&onShow(v);finish(mistakes===0)}
+      else{mistakes++;const a=$('ans');a.classList.remove('bad');void a.offsetWidth;a.classList.add('bad');say('Skús ešte raz.');v=''}
+    }else if(v.length<3)v=(v==='0'?'':v)+d;
+    show();
+  });
+}
+const MATH_TITLES={count:'Koľko ich je?',plus:'Plus',minus:'Mínus',mix:'Plus aj mínus',cmp:'Porovnávanie',line:'Číselná os',word:'Slovné úlohy',clock:'Hodiny',money:'Peniaze'};
+function mathGame(mode){setTitle(MATH_TITLES[mode]);runQuiz({n:10,again:()=>mathGame(mode),make:mathMaker(mode)})}
+function mathMaker(mode){
+  if(EXTRA_MATH[mode])return EXTRA_MATH[mode]();
+  const band=curBand(), [lo,hi]=band, small=hi<=10, cross=store.get('mcross',false); let last='';
+  return function(){
+    const e=rand(THINGS);
+    let op=mode==='mix'?(Math.random()<.5?'plus':'minus'):mode, a,b,r,key,tries=0;
+    do{
+      if(op==='count'){a=ri(Math.max(lo,1),hi);b=0;r=a}
+      else ({a,b,r}=genProblem(op,band,cross));
+      key=op+a+'_'+b;
+    }while(key===last&&++tries<20);
+    last=key;
+    const N=x=>small?NUM[x]:String(x);
+    let prompt, spk, ok;
+    if(op==='count'){
+      prompt=small?`<div class="q">Koľko je tu ${e}?</div><div class="things">${groupHTML(a,e)}</div>`
+                  :`<div class="q">Koľko je kociek? <span class="qm"></span></div><div class="things">${cellsHTML(a)}</div><div class="muted">Jeden riadok = 10 kociek</div>`;
+      spk=small?'Koľko ich je?':'Koľko je kociek?'; ok=N(r);
+    }else{
+      const sign=op==='plus'?'+':'−', word=op==='plus'?'plus':'mínus';
+      let pics='';
+      if(S.mpics){
+        if(small)pics=op==='plus'?`<div class="things">${groupHTML(a,e)}<span class="op">+</span>${groupHTML(b,e)}</div>`:`<div class="things">${groupHTML(a,e,a-b)}</div>`;
+        else pics=op==='plus'?`<div class="things">${cellsHTML(a)}<span class="op">+</span>${cellsHTML(b,'o')}</div>`:`<div class="things">${cellsHTML(a,'',a-b)}</div>`;
+      }
+      prompt=`<div class="eqbig">${a} ${sign} ${b} = <span class="qm">?</span></div>${pics}`;
+      spk=`${N(a)} ${word} ${N(b)}`; ok=`${N(a)} ${word} ${N(b)} je ${N(r)}`;
+    }
+    prompt+=`<button class="sp" id="spk">🔊 Počúvaj</button>`;
+    const bind=()=>{$('spk').onclick=()=>say(spk,0.85)};
+    const track=['M:'+op], label='🔢 Počítanie';
+    if(small)return{prompt,optClass:'pad',options:padOptions(r,hi),auto:spk,ok,bind,track,label};
+    return{prompt,auto:spk,ok,bind,track,label,custom:(box,finish)=>keypadUI(box,r,finish,v=>{const qm=main.querySelector('.qm');if(qm){qm.textContent=v;qm.style.color='var(--green)'}})};
+  };
+}
+
+/* ---------- Kvízový engine ---------- */
+function runQuiz(cfg){
+  let q=0, score=0; const start=S.stars;
+  const praise=()=>rand(S.girl?PRAISE_F:PRAISE_M);
+  const next=()=>{
+    if(q>=cfg.n){if(cfg.onDone)cfg.onDone(score);showResult(score,cfg.n,start,cfg.again);return}
+    const it=cfg.make();
+    let tries=0, done=false;
+    const finishItem=(ok,ms)=>{track(it.track,ok);logAct();setTimeout(()=>{q++;next()},ms)};
+    const dots=Array.from({length:cfg.n},(_,i)=>`<i class="${i<q?'done':i===q?'now':''}"></i>`).join('');
+    main.innerHTML=`<div class="prog">${dots}</div>${it.label?`<div class="itlabel">${it.label}</div>`:''}<div class="prompt">${it.prompt}</div>
+      ${it.custom?'<div id="cbox"></div>':it.read?`<button class="big-btn" id="rOk">✅ ${g('Prečítal','Prečítala')} správne</button><button class="big-btn alt" id="rNo">➡ Ďalej</button>
+        <div class="muted" style="text-align:center;margin-top:10px">Tieto tlačidlá stláča rodič 🙂</div>`
+      :`<div class="opts ${it.optClass||''}">${it.options.map((o,i)=>`<button class="opt" data-i="${i}">${o.html}</button>`).join('')}</div>`}`;
+    if(it.custom){
+      it.custom($('cbox'),firstTry=>{
+        if(done)return;done=true;
+        if(firstTry){score++;addStar()}
+        say(it.ok+'! '+(firstTry?praise():'Dobre!'));confetti(firstTry?8:3);owl(firstTry?praise():'Dobre! 👍');
+        finishItem(firstTry,1700);
+      });
+    }
+    if(it.read){
+      $('rOk').onclick=()=>{if(done)return;done=true;score++;addStar();const p=praise();say((it.ok?it.ok+'! ':'')+p);owl(p);confetti(8);finishItem(true,1300)};
+      $('rNo').onclick=()=>{if(done)return;done=true;finishItem(false,0)};
+    }
+    main.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+      if(done)return;
+      const o=it.options[+b.dataset.i];
+      if(o.correct){
+        done=true; b.classList.add('ok');
+        const qm=main.querySelector('.qm'); if(qm){qm.textContent=b.textContent;qm.style.color='var(--green)'}
+        if(tries===0){score++;addStar()}
+        const p=praise();say((it.ok?it.ok+'! ':'')+p);owl(p);
+        finishItem(tries===0,1600);
+      }else{
+        tries++; b.classList.add('bad'); b.disabled=true;
+        say('Skús ešte raz.');owl('Skús ešte raz 💪');
+      }
+    });
+    if(it.bind)it.bind(main);
+    if(it.auto)setTimeout(()=>say(it.auto),350);
+  };
+  next();
+}
+function showResult(score,n,start,again){
+  const newSt=Math.floor(S.stars/5)-Math.floor(start/5);
+  const firstNew=Math.floor(start/5);
+  let stHTML='', newBadge='';
+  if(newSt>0){
+    let bh='';for(let i=0;i<newSt;i++)bh+=badgeHTML(firstNew+i,false);
+    stHTML=`<div class="newst">🎖️ ${newSt>1?'Nové odznaky':'Nový odznak'}!<div style="display:flex;gap:14px;justify-content:center">${bh}</div></div>`;
+    newBadge=badge(firstNew+newSt-1).n;
+  }
+  const good=score>=Math.ceil(n/2);
+  main.innerHTML=`<div class="result">
+     <div class="trophy">${score>=n-1?'🏆':good?'🌟':'💪'}</div>
+     <h2>${good?'Výborne':'Dobrá práca'}${nm()}!</h2>
+     <p>${g('Získal','Získala')} si ${score} ${starWord(score)} ⭐</p>
+     ${stHTML}
+     <button class="big-btn" id="again">🔁 Ešte raz</button>
+     <button class="big-btn alt" id="toHome">🏠 Domov</button>
+   </div>`;
+  $('again').onclick=again;
+  document.getElementById('toHome').onclick=home;
+  say((good?'Výborne':'Dobrá práca')+(S.name?', '+S.name:'')+'! '+g('Získal','Získala')+' si '+score+' '+starWord(score)+'.'+(newBadge?' A máš nový odznak: '+newBadge+'!':''));
+  confetti(good?28:12);
+}
+function confetti(k){
+  const box=document.createElement('div');box.className='confetti';
+  const em=['⭐','🎉','✨','🌟','🎈'];
+  for(let i=0;i<k;i++){
+    const e=document.createElement('i');e.textContent=rand(em);
+    e.style.left=Math.random()*100+'vw';e.style.animationDuration=(2+Math.random()*2)+'s';e.style.animationDelay=(Math.random()*.8)+'s';
+    box.appendChild(e);
+  }
+  document.body.appendChild(box);setTimeout(()=>box.remove(),5000);
+}
+
+/* =====================================================================
+   ŠTATISTIKY, PRECVIČOVANIE CHÝB, SÉRIA
+   ===================================================================== */
+function today(d){const t=d||new Date();return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0')}
+function getStats(){return store.get('stats',{})}
+function track(keys,ok){
+  if(!keys||!keys.length)return;
+  const st=getStats();
+  keys.forEach(k=>{const e=st[k]||[0,0];e[ok?0:1]++;st[k]=e});
+  store.set('stats',st);
+}
+function logAct(){
+  const a=store.get('act',{}), d=today(); a[d]=(a[d]||0)+1;
+  const ks=Object.keys(a).sort(); while(ks.length>60)delete a[ks.shift()];
+  store.set('act',a);
+}
+// váha úlohy: čo nejde, príde častejšie; nové trochu častejšie
+function weight(keys){
+  const st=getStats(); let w=1;
+  (keys||[]).forEach(k=>{const e=st[k];
+    if(!e){w=Math.max(w,1.4);return}
+    const tot=e[0]+e[1], err=(e[1]+0.3)/(tot+1);
+    w=Math.max(w,1+5*err*Math.min(1,tot/3));
+  });
+  return w;
+}
+function wqueue(list,keyFn){
+  const recent=[];
+  return()=>{
+    const cand=list.filter(x=>!recent.includes(x)), pool=cand.length?cand:list;
+    const ws=pool.map(x=>weight(keyFn(x)));
+    let r=Math.random()*ws.reduce((a,b)=>a+b,0), pick=pool[pool.length-1];
+    for(let i=0;i<pool.length;i++){r-=ws[i];if(r<=0){pick=pool[i];break}}
+    recent.push(pick); if(recent.length>Math.min(4,Math.floor(list.length/2)))recent.shift();
+    return pick;
+  };
+}
+function streak(){
+  const days=new Set(store.get('days',[])); let n=0; const d=new Date();
+  if(!days.has(today(d)))d.setDate(d.getDate()-1);
+  while(days.has(today(d))){n++;d.setDate(d.getDate()-1)}
+  return n;
+}
+const dailyDone=()=>store.get('days',[]).includes(today());
+function markDaily(){const d=store.get('days',[]);if(!d.includes(today())){d.push(today());while(d.length>400)d.shift();store.set('days',d)}}
+
+/* ---------- Sovička Zvedavko (maskot) ---------- */
+let owlT=null;
+function owl(text){
+  let o=$('owl'); if(!o){o=document.createElement('div');o.id='owl';o.innerHTML='<div class="bub"></div><div class="o">🦉</div>';document.body.appendChild(o)}
+  o.querySelector('.bub').textContent=text; o.classList.add('show');
+  clearTimeout(owlT); owlT=setTimeout(()=>o.classList.remove('show'),1800);
+}
+function owlHome(){
+  const st=streak(), name=S.name?' '+S.name:'';
+  if(!dailyDone())return st?`Ahoj${name}! Máš sériu ${st} ${st===1?'deň':st<5?'dni':'dní'} 🔥 Nepokaz ju – dáme dnešnú výzvu?`:`Ahoj${name}! Som sovička Zvedavko. Dáme si dnešnú výzvu? 🔥`;
+  return rand([`Dnešnú výzvu máš hotovú! ${g('Si šikovný','Si šikovná')} 🌟`,`Super${name}! Zajtra pokračujeme v sérii 🔥`,`Môžeš si zahrať ešte hru alebo príbeh 📚`]);
+}
+
+/* =====================================================================
+   PRÍBEHY S OTÁZKOU + PRAVDA/NEPRAVDA
+   ===================================================================== */
+const ST_PRED=[['mala','mal','mimi'],['mala','mal','leva'],['mlela','mlel',''],['mávala','mával',''],['volala','volal','mamu'],['spala','spal',''],
+ ['mala','mal','auto'],['videla','videl','more'],['pila','pil','mlieko'],['papala','papal',''],['sedela','sedel',''],['mala','mal','lampu'],
+ ['mala','mal','pero'],['mala','mal','mapu'],['mala','mal','loptu'],['mala','mal','psa'],['mala','mal','mačku'],['spievala','spieval',''],['kreslila','kreslil','']];
+function storyParts(){
+  const F=G_F.filter(canRead).map(n=>({n,f:true})), M=G_M.filter(canRead).map(n=>({n,f:false})), A=[...F,...M];
+  const P=ST_PRED.filter(p=>A.some(x=>canRead((x.f?p[0]:p[1])+' '+p[2])));
+  return{A,P};
+}
+const canStory=()=>{const{A,P}=storyParts();return A.length>=2&&P.length>=2&&canRead('mimi')};
+function predTxt(p,f){return (f?p[0]:p[1])+(p[2]?' '+p[2]:'')}
+function storyMaker(){
+  return()=>{
+    const{A,P}=storyParts();
+    let X,Y,pX,pY,t=0;
+    do{[X,Y]=shuffle(A);[pX,pY]=shuffle(P);t++}
+    while(t<60&&!(canRead(predTxt(pX,X.f))&&canRead(predTxt(pY,Y.f))&&predTxt(pX,true)!==predTxt(pY,true)&&!(X.n==='lev'&&pX[2]==='leva')&&!(Y.n==='lev'&&pY[2]==='leva')));
+    const lines=[cap(X.n)+' '+predTxt(pX,X.f)+'.',cap(Y.n)+' '+predTxt(pY,Y.f)+'.'];
+    // tretia veta – obaja spolu
+    const pl=P.filter(p=>p!==pX&&p!==pY&&canRead(p[0].slice(0,-1)+'i'+(p[2]?' '+p[2]:'')));
+    let pZ=null;
+    if(pl.length&&Math.random()<.6){pZ=rand(pl);lines.push(cap(X.n)+' a '+Y.n+' '+pZ[0].slice(0,-1)+'i'+(pZ[2]?' '+pZ[2]:'')+'.')}
+    const qs=[[X,pX,true],[Y,pY,true],[X,pY,false],[Y,pX,false]];
+    if(pZ)qs.push([X,pZ,true],[Y,pZ,true]);
+    const okq=qs.filter(([who,p])=>canRead(predTxt(p,who.f)));
+    const[who,p,ans]=rand(okq);
+    const verb=who.f?p[0]:p[1], qtxt=cap(verb)+' '+who.n+(p[2]?' '+p[2]:'')+'?';
+    const all=lines.join(' ')+' '+qtxt;
+    const shown=t=>S.upper&&!S.cursive?t.toLocaleUpperCase('sk'):t;
+    return{label:'📚 Príbeh',
+      prompt:`<div class="story">${lines.map(l=>`<div class="sentence sm">${shown(l).split(' ').map(w=>`<span class="w">${esc(w)}</span>`).join(' ')}</div>`).join('')}</div>
+        <div class="question sentence sm">${shown(qtxt).split(' ').map(w=>`<span class="w">${esc(w)}</span>`).join(' ')}</div>
+        <button class="sp" id="spk">🔊 Prečítaj mi</button>`,
+      options:[{html:'✅<small>áno</small>',correct:ans},{html:'❌<small>nie</small>',correct:!ans}],optClass:'yn',
+      ok:ans?'Áno':'Nie',track:['T:pribeh'],
+      bind(m){$('spk').onclick=()=>say(all,0.8);m.querySelectorAll('.w').forEach(x=>x.onclick=()=>say(x.textContent.replace(/[.,!?]/g,'').toLocaleLowerCase('sk'),0.7))}};
+  };
+}
+function storyGame(){
+  setTitle('Príbehy');
+  if(!canStory()){main.innerHTML='<div class="note">Na príbehy treba ešte pár písmeniek (napr. A, E, I, L, M, V).</div>';return}
+  runQuiz({n:6,again:storyGame,make:storyMaker()});
+}
+function truthMaker(){
+  const pool=getWords().filter(x=>x.e&&canRead(x.w));
+  const next=wqueue(pool,x=>['W:'+x.w.replace(/-/g,'').toLocaleLowerCase('sk')]);
+  return()=>{
+    const t=next(), same=Math.random()<.5, other=rand(pool.filter(x=>x.e!==t.e)), shownWord=same?t:other;
+    const plain=shownWord.w.replace(/-/g,'');
+    return{label:'✅ Pravda?',prompt:`<div class="pic" style="font-size:96px">${t.e}</div><div class="word">${wordHTML(shownWord.w)}</div><div class="q" style="margin-top:6px">Je to pravda?</div>`,
+      options:[{html:'✅<small>áno</small>',correct:same},{html:'❌<small>nie</small>',correct:!same}],optClass:'yn',
+      ok:same?'Áno, '+plain:'Nie, to nie je '+plain,track:['W:'+plain.toLocaleLowerCase('sk')]};
+  };
+}
+const canTruth=()=>getWords().filter(x=>x.e&&canRead(x.w)).length>=2;
+function truthGame(){setTitle('Pravda alebo nie?');runQuiz({n:8,again:truthGame,make:truthMaker()})}
+
+/* =====================================================================
+   HRY: PEXESO, BLESK
+   ===================================================================== */
+function gamesMenu(){
+  setTitle('Hry');
+  const pics=getWords().filter(x=>x.e&&canRead(x.w)).length;
+  main.innerHTML=`<div class="levels">
+     <button class="level c1" data-g="pic" ${pics>=3?'':'disabled'}><span style="font-size:40px">🃏</span><div>Pexeso: slovo a obrázok<span>nájdi dvojice</span></div></button>
+     <button class="level c2" data-g="case" ${S.known.length>=3?'':'disabled'}><span style="font-size:40px">🔠</span><div>Pexeso: veľké a malé<span>M ↔ m</span></div></button>
+     <button class="level c5" data-g="cur" ${S.known.length>=3?'':'disabled'}><span style="font-size:40px">✍️</span><div>Pexeso: tlačené a písané<span>M ↔ <span class="cur">M</span></span></div></button>
+     <button class="level c4" data-g="flash"><span style="font-size:40px">⚡</span><div>Blesk<span>slovo sa ukáže len na chvíľu</span></div></button>
+     <button class="level c3" data-g="truth" ${canTruth()?'':'disabled'}><span style="font-size:40px">✅</span><div>Pravda alebo nie?<span>sedí slovo k obrázku?</span></div></button>
+   </div>`;
+  main.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{const k=b.dataset.g;if(k==='flash')flashMenu();else if(k==='truth')truthGame();else pexeso(k)});
+}
+function pexeso(mode){
+  setTitle('Pexeso');
+  let pairs=[];
+  if(mode==='pic'){
+    pairs=shuffle(getWords().filter(x=>x.e&&canRead(x.w))).slice(0,4).map(x=>[{h:`<span class="pw">${esc(csw(x.w.replace(/-/g,'')))}</span>`,sp:x.w.replace(/-/g,'')},{h:`<span class="pe">${x.e}</span>`,sp:x.w.replace(/-/g,'')}]);
+  }else{
+    pairs=shuffle(S.known).slice(0,Math.min(6,S.known.length)).map(L=>{
+      const up=L.charAt(0)+L.slice(1).toLocaleLowerCase('sk'), lo=L.toLocaleLowerCase('sk');
+      return mode==='case'?[{h:`<span class="pl">${esc(up)}</span>`,sp:lo},{h:`<span class="pl">${esc(lo)}</span>`,sp:lo}]
+                          :[{h:`<span class="pl">${esc(up)} ${esc(lo)}</span>`,sp:lo},{h:`<span class="pl cur">${esc(up)} ${esc(lo)}</span>`,sp:lo}];
+    });
+  }
+  const cards=shuffle(pairs.flatMap((p,i)=>p.map(c=>({...c,id:i}))));
+  const start=S.stars; let open=[], found=0, moves=0, lock=false;
+  main.innerHTML=`<div class="muted" style="text-align:center;margin-bottom:10px">Otáčaj kartičky a nájdi dvojice. Ťahy: <b id="mv">0</b></div>
+    <div class="pex ${cards.length>8?'p12':''}">${cards.map((c,i)=>`<button class="pc" data-i="${i}"><span class="back">❓</span><span class="face">${c.h}</span></button>`).join('')}</div>`;
+  main.querySelectorAll('.pc').forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.i; if(lock||b.classList.contains('open')||b.classList.contains('done'))return;
+    b.classList.add('open'); open.push(i); say(cards[i].sp,0.8);
+    if(open.length===2){
+      moves++;$('mv').textContent=moves; const[a,c]=open; open=[];
+      if(cards[a].id===cards[c].id){
+        found++;addStar();
+        setTimeout(()=>{[a,c].forEach(k=>main.querySelector(`[data-i="${k}"]`).classList.add('done'));owl(rand(S.girl?PRAISE_F:PRAISE_M))},300);
+        logAct();
+        if(found===pairs.length)setTimeout(()=>showResult(pairs.length,pairs.length,start,()=>pexeso(mode)),1300);
+      }else{lock=true;setTimeout(()=>{[a,c].forEach(k=>main.querySelector(`[data-i="${k}"]`).classList.remove('open'));lock=false},1000)}
+    }
+  });
+}
+function flashMenu(){
+  setTitle('Blesk');
+  const sp=store.get('flash',2000);
+  main.innerHTML=`<div class="note" style="margin-top:0">Slovo sa ukáže len na chvíľu. Dieťa ho musí prečítať rýchlo – tak sa učí čítať celé slovo naraz.</div>
+    <div class="panel"><h3>Ako dlho sa ukáže?</h3><div class="chips">${[[3000,'3 sekundy'],[2000,'2 sekundy'],[1200,'1 sekunda']].map(([v,l])=>`<button class="chip ${sp===v?'on':''}" data-s="${v}" style="min-width:100px;font-size:16px">${l}</button>`).join('')}</div></div>
+    <button class="big-btn" id="fGo">⚡ Začať</button>`;
+  main.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{store.set('flash',+b.dataset.s);flashMenu()});
+  $('fGo').onclick=flashGame;
+}
+function flashMaker(){
+  const pool=getWords().filter(x=>canRead(x.w)), next=wqueue(pool,x=>['W:'+x.w.replace(/-/g,'').toLocaleLowerCase('sk')]);
+  return()=>{
+    const t=next(), plain=t.w.replace(/-/g,''), ms=store.get('flash',2000);
+    return{label:'⚡ Blesk',prompt:`<div class="word" id="fw" style="min-height:80px">${wordHTML(t.w)}</div><button class="sp" id="fAgain">👀 Ukáž ešte raz</button>`,
+      read:true,ok:plain,track:['W:'+plain.toLocaleLowerCase('sk')],
+      bind(){const hide=()=>{const w=$('fw');if(w)w.innerHTML='<span style="color:#ddd">⚡</span>'};let tm=setTimeout(hide,ms);
+        $('fAgain').onclick=()=>{$('fw').innerHTML=wordHTML(t.w);clearTimeout(tm);tm=setTimeout(hide,ms)}}};
+  };
+}
+function flashGame(){setTitle('Blesk');runQuiz({n:10,again:flashGame,make:flashMaker()})}
+
+/* =====================================================================
+   MATEMATIKA: porovnávanie, číselná os, slovné úlohy, hodiny, peniaze
+   ===================================================================== */
+const NOUNS=[['jablko','jablká','jabĺk','🍎'],['cukrík','cukríky','cukríkov','🍬'],['balón','balóny','balónov','🎈'],['autíčko','autíčka','autíčok','🚗'],
+ ['vajíčko','vajíčka','vajíčok','🥚'],['lízatko','lízatká','lízatiek','🍭'],['kvietok','kvietky','kvietkov','🌼'],['koláčik','koláčiky','koláčikov','🍪']];
+const nounForm=(nn,n)=>n===1?nn[0]:(n>=2&&n<=4)?nn[1]:nn[2];
+const WP_F=['Ema','Mila','Lea','Nina','Sára','Zuzka'], WP_M=['Adam','Tomi','Samko','Jakub','Leo','Matej'];
+function answerItem(r,hi,prompt,extra){
+  const base={prompt,...extra};
+  if(hi<=10)return{...base,optClass:'pad',options:padOptions(r,Math.max(hi,10))};
+  return{...base,custom:(box,finish)=>keypadUI(box,r,finish,v=>{const qm=main.querySelector('.qm');if(qm){qm.textContent=v;qm.style.color='var(--green)'}})};
+}
+const EXTRA_MATH={
+  cmp(){
+    const band=curBand(),[lo,hi]=band;
+    return()=>{
+      let a=ri(lo,hi), b=Math.random()<.25?a:ri(lo,hi);
+      const sign=a<b?'<':a>b?'>':'=', word=a<b?'je menej ako':a>b?'je viac ako':'sa rovná';
+      const pics=S.mpics?(hi<=10?`<div class="things">${groupHTML(a,'🍎')}<span class="op">?</span>${groupHTML(b,'🍎')}</div>`:`<div class="things">${cellsHTML(a)}<span class="op">?</span>${cellsHTML(b,'o')}</div>`):'';
+      return{label:'⚖️ Porovnaj',prompt:`<div class="eqbig">${a} <span class="qm">☐</span> ${b}</div>${pics}<div class="muted">Ktorý znak patrí do okienka?</div>`,
+        optClass:'txt',options:['<','=','>'].map(x=>({html:x,correct:x===sign})),ok:`${a} ${word} ${b}`,track:['M:cmp']};
+    };
+  },
+  line(){
+    const band=curBand(),[lo,hi]=band;
+    return()=>{
+      const step=hi>=50&&Math.random()<.35?10:1;
+      const n=6, maxStart=Math.max(lo,hi-step*(n-1)), st=step===10?Math.floor(ri(lo,maxStart)/10)*10:ri(lo,maxStart);
+      const miss=ri(1,n-1), r=st+miss*step;
+      const ticks=Array.from({length:n},(_,i)=>i===miss?`<div class="tk miss"><i></i><b class="qm">?</b></div>`:`<div class="tk"><i></i><b>${st+i*step}</b></div>`).join('');
+      return{label:'📏 Číselná os',...answerItem(r,hi,`<div class="q">Ktoré číslo chýba?</div><div class="nline">${ticks}</div>${step===10?'<div class="muted">Skáčeme po desiatkach</div>':''}`,
+        {ok:String(r),track:['M:line']})};
+    };
+  },
+  word(){
+    const band=curBand(),cross=store.get('mcross',false);
+    return()=>{
+      const op=Math.random()<.5?'plus':'minus'; let p,t=0;
+      do{p=genProblem(op,band,cross)}while((p.b===0||p.a===0)&&++t<30);
+      const nn=rand(NOUNS);
+      const useKid=S.name&&Math.random()<.35, f=useKid?S.girl:Math.random()<.5, who=useKid?S.name:rand(f?WP_F:WP_M);
+      const G=(m,fe)=>f?fe:m;
+      const txt=op==='plus'
+        ?`${who} ${G('mal','mala')} ${p.a} ${nounForm(nn,p.a)}. Potom ${G('dostal','dostala')} ešte ${p.b} ${nounForm(nn,p.b)}. Koľko ${nn[2]} má teraz?`
+        :`${who} ${G('mal','mala')} ${p.a} ${nounForm(nn,p.a)}. Potom ${G('rozdal','rozdala')} ${p.b} ${nounForm(nn,p.b)}. Koľko ${nn[2]} ${G('mu','jej')} zostalo?`;
+      const pics=S.mpics&&p.a<=10&&curBand()[1]<=10?(op==='plus'?`<div class="things">${groupHTML(p.a,nn[3])}<span class="op">+</span>${groupHTML(p.b,nn[3])}</div>`:`<div class="things">${groupHTML(p.a,nn[3],p.a-p.b)}</div>`):'';
+      return{label:'📝 Slovná úloha',...answerItem(p.r,band[1],`<div class="wp">${esc(txt)}</div>${pics}<div class="eqbig" style="font-size:40px">${p.a} ${op==='plus'?'+':'−'} ${p.b} = <span class="qm">?</span></div><button class="sp" id="spk">🔊 Prečítaj</button>`,
+        {auto:txt,ok:`${p.r} ${nounForm(nn,p.r)}`,track:['M:word'],bind(){$('spk').onclick=()=>say(txt,0.85)}})};
+    };
+  },
+  clock(){
+    const half=curBand()[1]>10;
+    return()=>{
+      const h=ri(1,12), m=half&&Math.random()<.4?30:0, fmt=(hh,mm)=>hh+':'+(mm?'30':'00');
+      const opts=new Set([fmt(h,m)]);
+      while(opts.size<3){const dh=((h-1+rand([-3,-2,-1,1,2,3,6])+12)%12)+1;opts.add(Math.random()<.3&&half?fmt(h,m?0:30):fmt(dh,m))}
+      return{label:'🕐 Hodiny',prompt:`<div class="q">Koľko je hodín?</div>${clockSVG(h,m)}`,optClass:'txt clk',
+        options:shuffle([...opts]).map(o=>({html:o,correct:o===fmt(h,m)})),ok:'Je '+fmt(h,m),track:['M:clock']};
+    };
+  },
+  money(){
+    const band=curBand(),[lo,hi]=band;
+    return()=>{
+      const r=ri(Math.max(lo,2),Math.max(hi,3)), den=[50,20,10,5,2,1].filter(d=>d<=Math.max(2,Math.min(hi,50)));
+      let rest=r; const parts=[];
+      while(rest>0){const ok=den.filter(d=>d<=rest);const d=parts.length<3?rand(ok):ok[0];parts.push(d);rest-=d}
+      parts.sort((a,b)=>b-a);
+      return{label:'💶 Peniaze',...answerItem(r,hi,`<div class="q">Koľko eur je to spolu?</div><div class="money">${parts.map(moneyHTML).join('')}</div><div class="eqbig" style="font-size:40px"><span class="qm">?</span> €</div>`,
+        {ok:r+' eur',track:['M:money']})};
+    };
+  }
+};
+function clockSVG(h,m){
+  const ha=((h%12)+m/60)*30*Math.PI/180, ma=m*6*Math.PI/180;
+  let nums='';for(let i=1;i<=12;i++){const a=i*30*Math.PI/180;nums+=`<text x="${100+Math.sin(a)*72}" y="${100-Math.cos(a)*72+8}" text-anchor="middle" font-size="22" font-weight="700" fill="#2B2D42">${i}</text>`}
+  let tk='';for(let i=0;i<60;i++){const a=i*6*Math.PI/180,r1=i%5?88:84;tk+=`<line x1="${100+Math.sin(a)*r1}" y1="${100-Math.cos(a)*r1}" x2="${100+Math.sin(a)*92}" y2="${100-Math.cos(a)*92}" stroke="#999" stroke-width="${i%5?1:3}"/>`}
+  return`<svg viewBox="0 0 200 200" width="220" height="220" style="display:block;margin:6px auto"><circle cx="100" cy="100" r="96" fill="#fff" stroke="#2B2D42" stroke-width="6"/>${tk}${nums}
+    <line x1="100" y1="100" x2="${100+Math.sin(ha)*48}" y2="${100-Math.cos(ha)*48}" stroke="#DC2626" stroke-width="9" stroke-linecap="round"/>
+    <line x1="100" y1="100" x2="${100+Math.sin(ma)*74}" y2="${100-Math.cos(ma)*74}" stroke="#1D4ED8" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="100" cy="100" r="7" fill="#2B2D42"/></svg><div class="muted">Krátka červená ručička = hodiny, dlhá modrá = minúty</div>`;
+}
+function moneyHTML(v){
+  if(v<=2)return`<span class="coin ${v===2?'c2':''}">${v} €</span>`;
+  const col={5:'#9ca3af',10:'#f87171',20:'#60a5fa',50:'#fb923c'}[v]||'#a3e635';
+  return`<span class="bill" style="background:${col}">${v} €</span>`;
+}
+
+/* =====================================================================
+   DENNÁ VÝZVA
+   ===================================================================== */
+function mixMaker(makers){let i=0;const ms=shuffle(makers);return()=>ms[(i++)%ms.length]()}
+function readingMakers(){
+  const m=[];
+  if(getWords().filter(x=>canRead(x.w)).length)m.push(wordMaker());
+  if(getSents().filter(x=>canRead(x[0])).length)m.push(sentMaker());
+  if(sylPool().length){m.push(pseudoMaker());if(hasTTS)m.push(sylMaker())}
+  if(canStory())m.push(storyMaker());
+  if(S.known.length>=2)m.push(letterMaker());
+  return m;
+}
+function dailyGame(){
+  setTitle('🔥 Denná výzva');
+  const rm=readingMakers(), mm=[mathMaker('mix'),mathMaker('mix'),EXTRA_MATH.cmp(),EXTRA_MATH.line()];
+  const rmix=rm.length?mixMaker(rm):null, mmix=mixMaker(mm); let k=0;
+  runQuiz({n:12,again:dailyGame,make:()=>(rmix&&k++%2===0)?rmix():mmix(),
+    onDone(){const was=dailyDone();markDaily();if(!was)setTimeout(()=>{owl('Výzva splnená! Séria: '+streak()+' 🔥');say('Denná výzva je splnená! Máš sériu '+streak()+'.')},2600)}});
+}
+function practiceWeak(){
+  setTitle('🎯 Precvičovanie');
+  const m=[]; if(S.known.length>=2)m.push(letterMaker()); if(sylPool().length){m.push(pseudoMaker());if(hasTTS)m.push(sylMaker())}
+  if(getWords().filter(x=>canRead(x.w)).length)m.push(wordMaker());
+  if(!m.length){home();return}
+  runQuiz({n:10,again:practiceWeak,make:mixMaker(m)});
+}
+
+/* =====================================================================
+   PREHĽAD PRE RODIČA
+   ===================================================================== */
+function overview(){
+  setTitle('📊 Prehľad');
+  const st=getStats(), act=store.get('act',{}), days=new Set(store.get('days',[]));
+  const pct=e=>Math.round(e[0]/(e[0]+e[1])*100);
+  const col=p=>p>=85?'#bbf7d0':p>=65?'#fef08a':'#fecaca';
+  // písmenká: súčet zo všetkých úloh, kde sa písmeno vyskytlo
+  const lt=S.known.map(L=>{const e=[0,0];Object.keys(st).forEach(k=>{if(/^(L|S|W):/.test(k)&&lettersOf(k.slice(2)).includes(L)){e[0]+=st[k][0];e[1]+=st[k][1]}});return[L,e]});
+  const week=[];const d=new Date();d.setDate(d.getDate()-6);
+  for(let i=0;i<7;i++){const k=today(d);week.push([['Ne','Po','Ut','St','Št','Pi','So'][d.getDay()],act[k]||0,days.has(k)]);d.setDate(d.getDate()+1)}
+  const weak=Object.entries(st).filter(([k,e])=>/^(S|W):/.test(k)&&e[0]+e[1]>=2&&e[1]/(e[0]+e[1])>=.3).sort((a,b)=>b[1][1]/(b[1][0]+b[1][1])-a[1][1]/(a[1][0]+a[1][1])).slice(0,8);
+  const M={plus:'Plus',minus:'Mínus',count:'Spočítavanie',cmp:'Porovnávanie',line:'Číselná os',word:'Slovné úlohy',clock:'Hodiny',money:'Peniaze'};
+  const maxA=Math.max(1,...week.map(w=>w[1]));
+  main.innerHTML=`
+    <div class="panel" style="margin-top:0;text-align:center">
+      <div style="font-size:44px">🔥 ${streak()}</div><div class="muted">${streak()===1?'deň':'dní'} za sebou s dennou výzvou</div>
+      <div class="week">${week.map(([n,c,dn])=>`<div><div class="wb" style="height:${8+c/maxA*60}px;background:${dn?'#ff9f1c':c?'#93c5fd':'#eee'}"></div><small>${n}</small><small>${c||''}</small></div>`).join('')}</div>
+      <div class="muted">Stĺpce = počet úloh v daný deň · oranžová = splnená výzva</div>
+    </div>
+    <div class="panel"><h3>Písmenká</h3>
+      <div class="chips">${lt.map(([L,e])=>{const n=e[0]+e[1];return`<div class="chip" style="background:${n>=3?col(pct(e)):'#f3f4f6'};min-width:58px;padding:6px 4px;line-height:1.1">${L}<br><small style="font-size:12px;font-weight:400">${n>=3?pct(e)+' %':'málo'}</small></div>`}).join('')}</div>
+      <div class="muted" style="margin-top:8px">🟢 ide výborne · 🟡 ešte precvičiť · 🔴 robí problém</div></div>
+    <div class="panel"><h3>Treba precvičiť</h3>
+      ${weak.length?`<div class="chips">${weak.map(([k,e])=>`<div class="chip" style="background:#fecaca;min-width:0;padding:6px 10px">${esc(cs(k.slice(2)))} <small style="font-weight:400">${e[1]}× chyba</small></div>`).join('')}</div>
+        <div class="muted" style="margin-top:6px">Appka tieto veci sama dáva častejšie.</div>`:'<div class="muted">Zatiaľ nič – alebo je málo dát. 👍</div>'}
+      <button class="big-btn" id="pw">🎯 Precvičiť slabé miesta</button></div>
+    <div class="panel"><h3>Počítanie</h3>
+      ${Object.keys(M).filter(k=>st['M:'+k]).map(k=>{const e=st['M:'+k];return`<div class="row"><span>${M[k]}</span><b style="background:${col(pct(e))};padding:2px 10px;border-radius:10px">${pct(e)} %</b></div>`}).join('')||'<div class="muted">Zatiaľ žiadne príklady.</div>'}</div>
+    <div class="panel"><h3>Spolu</h3>
+      <div class="row"><span>Hviezdičky</span><b>⭐ ${S.stars}</b></div>
+      <div class="row"><span>Odznaky</span><b>🎖️ ${Math.floor(S.stars/5)}</b></div>
+      <div class="row"><span>Úlohy za 7 dní</span><b>${week.reduce((a,w)=>a+w[1],0)}</b></div>
+      <button class="toggle" id="resetSt" style="margin-top:8px">Vynulovať štatistiky</button><span id="rsMsg"></span></div>`;
+  $('pw').onclick=practiceWeak;
+  $('resetSt').onclick=()=>{const b=$('resetSt');if(b.dataset.c){store.set('stats',{});overview()}else{b.dataset.c=1;b.textContent='Naozaj vynulovať? Ťuknite znova'}};
+}
+
+/* =====================================================================
+   PROFILY DETÍ + PRENOS KÓDOM
+   ===================================================================== */
+function profList(){const l=store.get('profiles',[0]);return l.length?l:[0]}
+function switchProf(id){
+  try{LS.set('citanie_cur',String(id))}catch(e){}
+  loadS();genCache.key='';applyFont();updStars();
+  if(store.get('onboarded',false)||S.stars>0)home();else welcome();
+}
+function profilesView(){
+  setTitle('👥 Deti');
+  const cur=curProf(), list=profList();
+  main.innerHTML=`
+    <div class="panel" style="margin-top:0"><h3>Kto sa bude učiť?</h3>
+      ${list.map(id=>{const n=store.getFor(id,'name','')||'Bez mena', st=store.getFor(id,'stars',0), gl=store.getFor(id,'girl',false);
+        return`<div class="row"><button class="toggle ${id===cur?'on':''}" data-p="${id}" style="flex:1;text-align:left">${gl?'👧':'👦'} ${esc(n)} <small style="font-weight:400">⭐ ${st}</small>${id===cur?' ✔':''}</button>
+          ${list.length>1?`<button class="toggle" data-del="${id}" style="min-width:0">🗑</button>`:''}</div>`}).join('')}
+      <button class="big-btn" id="addP">➕ Pridať ďalšie dieťa</button>
+    </div>
+    <div class="note cloudNote">${cloudNoteHTML()}</div>
+    <div class="panel"><h3>📤 Preniesť do iného zariadenia</h3>
+      <div class="muted">Skopírujte kód a vložte ho v appke na druhom telefóne alebo tablete. Prenesú sa hviezdičky, odznaky, písmenká aj nastavenia dieťaťa <b>${esc(S.name||'')}</b>.</div>
+      <button class="big-btn alt" id="expB">Vytvoriť kód</button>
+      <textarea id="expT" rows="3" readonly style="display:none"></textarea><div class="muted" id="expM"></div>
+    </div>
+    <div class="panel"><h3>📥 Načítať kód z iného zariadenia</h3>
+      <textarea id="impT" rows="3" placeholder="Sem vložte kód"></textarea>
+      <button class="big-btn" id="impB">Načítať ako nové dieťa</button><div class="muted" id="impM"></div>
+    </div>`;
+  main.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>switchProf(+b.dataset.p));
+  main.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{
+    if(!b.dataset.c){b.dataset.c=1;b.textContent='Naozaj?';return}
+    const id=+b.dataset.del; PROFILE_KEYS.forEach(k=>store.delFor(id,k));
+    const nl=profList().filter(x=>x!==id); store.set('profiles',nl.length?nl:[0]);
+    if(id===curProf())switchProf(nl[0]||0); else profilesView();
+  });
+  $('addP').onclick=()=>{const l=profList(), id=Math.max(...l)+1; l.push(id); store.set('profiles',l); try{LS.set('citanie_cur',String(id))}catch(e){} loadS();genCache.key='';applyFont();updStars();welcome()};
+  $('expB').onclick=()=>{
+    const data={v:1};PROFILE_KEYS.forEach(k=>{const v=store.get(k,undefined);if(v!==undefined)data[k]=v});
+    const code='CPH1.'+btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+    const t=$('expT');t.style.display='block';t.value=code;t.select();
+    try{navigator.clipboard.writeText(code).then(()=>{$('expM').textContent='Skopírované ✔ Teraz ho vložte na druhom zariadení.'},()=>{$('expM').textContent='Označte kód a skopírujte ho.'})}catch(e){$('expM').textContent='Označte kód a skopírujte ho.'}
+  };
+  $('impB').onclick=()=>{
+    try{
+      const raw=$('impT').value.trim().replace(/^CPH1\./,''); const data=JSON.parse(decodeURIComponent(escape(atob(raw))));
+      const l=profList(), id=Math.max(...l)+1; l.push(id); store.set('profiles',l);
+      Object.keys(data).forEach(k=>{if(PROFILE_KEYS.includes(k))try{LS.set(keyFor(k,id),JSON.stringify(data[k]))}catch(e){}});
+      try{LS.set(keyFor('onboarded',id),'true')}catch(e){}
+      switchProf(id);
+    }catch(e){$('impM').textContent='Kód sa nepodarilo načítať – skontrolujte, či je celý.'}
+  };
+}
+
+/* ---------- Uvítanie pre nových rodičov ---------- */
+function welcome(){
+  setTitle('Vitajte!');
+  let sel=store.get('known',null)?S.known.slice():[];
+  const render=()=>{
+    main.innerHTML=`
+     <div class="hello">Vitajte! 👋</div>
+     <div class="panel" style="margin-top:0">
+       <div style="font-size:17px">Hra pre prvákov na čítanie a počítanie. Slová a vety sa skladajú <b>len z písmeniek, ktoré dieťa už pozná</b> – nastavíte ich tu (neskôr ich zmeníte dole na úvodnej obrazovke).</div>
+     </div>
+     <div class="panel">
+       <h3>1. Kto sa bude učiť?</h3>
+       <div class="row"><span>Meno</span><input type="text" id="wName" maxlength="20" placeholder="napr. Jakub" value="${esc(S.name)}"></div>
+       <div class="row"><span>Je to</span><div style="display:flex;gap:6px">
+         <button class="toggle ${!S.girl?'on':''}" id="wBoy">👦 Chlapec</button><button class="toggle ${S.girl?'on':''}" id="wGirl">👧 Dievča</button></div></div>
+     </div>
+     <div class="panel">
+       <h3>2. Ktoré písmenká už pozná?</h3>
+       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+         <button class="toggle" id="wVow">Samohlásky</button><button class="toggle" id="wAll">Všetky</button><button class="toggle" id="wNone">Zrušiť výber</button></div>
+       <div class="chips">${ALL_KEYS.map(L=>`<button class="chip ${sel.includes(L)?'on':''}" data-l="${L}">${L}</button>`).join('')}</div>
+       <div class="muted" style="margin-top:8px">Vybraté: ${sel.length?sel.join(' '):'zatiaľ nič'}</div>
+     </div>
+     ${hasTTS?`<div class="panel"><h3>3. Skúška zvuku</h3>
+       <div class="muted">Má zaznieť po slovensky „me, le, mi, li“. Ak to znie anglicky, návod nájdete neskôr v Nastaveniach.</div>
+       <button class="big-btn alt" id="wTest">🔊 Prehrať</button></div>`:''}
+     <button class="big-btn" id="wGo" ${sel.length?'':'disabled'}>🚀 Začať hrať</button>
+     <div class="muted" style="text-align:center;margin-top:8px">Všetko sa ukladá len v tomto zariadení.</div>`;
+    const keepName=()=>{S.name=$('wName').value.trim();save('name')};
+    $('wBoy').onclick=()=>{keepName();S.girl=false;save('girl');render()};
+    $('wGirl').onclick=()=>{keepName();S.girl=true;save('girl');render()};
+    main.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{keepName();const L=b.dataset.l;sel=sel.includes(L)?sel.filter(x=>x!==L):ALL_KEYS.filter(x=>x===L||sel.includes(x));const y=window.scrollY;render();window.scrollTo(0,y)});
+    $('wVow').onclick=()=>{keepName();sel=ALL_KEYS.filter(x=>'AEIOUÁÉÍÓÚ'.includes(x)&&x.length===1);render()};
+    $('wAll').onclick=()=>{keepName();sel=ALL_KEYS.slice();render()};
+    $('wNone').onclick=()=>{keepName();sel=[];render()};
+    if($('wTest'))$('wTest').onclick=()=>{pickVoice();say('me, le, mi, li. Ahoj!',0.75)};
+    $('wGo').onclick=()=>{keepName();S.known=sel;save('known');store.set('onboarded',true);window.scrollTo(0,0);home();say('Ahoj'+(S.name?' '+S.name:'')+'! Ideme sa hrať.')};
+  };
+  render();
+}
+
+/* ---------- Karty na tlač (odomknú sa za 10 odznakov) ---------- */
+const CARDS_AT=10;
+let dlApi=null;
+(async()=>{try{if(window.claude&&typeof window.claude.use==='function')dlApi=await window.claude.use('downloads')}catch(e){}})();
+const CW=1240, CH=1754, FONT='"Andika", system-ui, sans-serif';
+function sheetBase(ctx,title){
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,CW,CH);
+  ctx.fillStyle='#2B2D42';ctx.textBaseline='alphabetic';ctx.textAlign='left';
+  ctx.font=`700 64px ${FONT}`;ctx.fillText(title,80,140);
+  ctx.font=`400 34px ${FONT}`;ctx.fillText('Meno: '+(S.name||'______________'),80,205);
+  ctx.textAlign='right';ctx.fillText('Dátum: __________',CW-80,205);
+  ctx.textAlign='center';ctx.fillStyle='#999';ctx.font=`400 26px ${FONT}`;ctx.fillText('Zvedavko – čítanie a počítanie hrou',CW/2,CH-50);
+  ctx.textAlign='left';
+}
+function guideLines(ctx,y,h){ // y = účiaria (baseline)
+  ctx.save();ctx.strokeStyle='#9ec5ff';ctx.lineWidth=2;
+  [y-h,y].forEach(yy=>{ctx.beginPath();ctx.moveTo(70,yy);ctx.lineTo(CW-70,yy);ctx.stroke()});
+  ctx.setLineDash([12,10]);ctx.beginPath();ctx.moveTo(70,y-h*0.52);ctx.lineTo(CW-70,y-h*0.52);ctx.stroke();ctx.restore();
+}
+function traceText(ctx,t,x,y,size){
+  ctx.save();ctx.font=`700 ${size}px ${FONT}`;ctx.setLineDash([5,7]);ctx.lineWidth=3;ctx.strokeStyle='#9a9a9a';ctx.strokeText(t,x,y);ctx.restore();
+}
+function solidText(ctx,t,x,y,size,color){ctx.save();ctx.font=`700 ${size}px ${FONT}`;ctx.fillStyle=color||'#2B2D42';ctx.fillText(t,x,y);ctx.restore()}
+const CFONT='"Playwrite SK", cursive';
+function drawWrite(ctx,mode){
+  const cur=mode.startsWith('c'), m=cur?mode.slice(1):mode;
+  sheetBase(ctx,(m==='words'?'Obťahuj slová':'Obťahuj písmenká')+(cur?' – písané':''));
+  const font=sz=>cur?`400 ${sz}px ${CFONT}`:`700 ${sz}px ${FONT}`;
+  const solid=(t,x,y,sz,col)=>{ctx.save();ctx.font=font(sz);ctx.fillStyle=col||'#2B2D42';ctx.fillText(t,x,y);ctx.restore()};
+  const trace=(t,x,y,sz)=>{ctx.save();ctx.font=font(sz);
+    if(cur){ctx.fillStyle='#cfcfcf';ctx.fillText(t,x,y)}else{ctx.setLineDash([5,7]);ctx.lineWidth=3;ctx.strokeStyle='#9a9a9a';ctx.strokeText(t,x,y)}ctx.restore()};
+  const lines=(y,h)=>{guideLines(ctx,y,h);if(cur){ctx.save();ctx.strokeStyle='#cfe0ff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(70,y+h*.55);ctx.lineTo(CW-70,y+h*.55);ctx.stroke();ctx.restore()}};
+  if(m==='words'){
+    const ws=shuffle(getWords().filter(x=>canRead(x.w)).map(x=>x.w.replace(/-/g,''))).slice(0,6);
+    if(!ws.length){solid('Zatiaľ žiadne slová.',80,400,40);return}
+    ws.forEach((w0,i)=>{
+      const w=cur?w0:csw(w0), y=370+i*220, size=cur?80:100; lines(y,cur?60:72);
+      ctx.font=font(size);const tw=ctx.measureText(w).width+60;
+      solid(w,90,y,size);
+      for(let x=90+tw;x+tw-60<CW-70;x+=tw)trace(w,x,y,size);
+    });
+  }else{
+    const ls=shuffle(S.known).slice(0,7);
+    ls.forEach((L,i)=>{
+      const y=350+i*190, size=cur?90:110, up=L.charAt(0)+L.slice(1).toLocaleLowerCase('sk'), lo=L.toLocaleLowerCase('sk');
+      lines(y,cur?62:80);
+      const pair=up+' '+lo; ctx.font=font(size);const tw=ctx.measureText(pair).width+60;
+      solid(up,90,y,size);ctx.font=font(size);solid(lo,90+ctx.measureText(up+' ').width,y,size,'#1D4ED8');
+      for(let x=90+tw;x+tw-60<CW-70;x+=tw)trace(pair,x,y,size);
+    });
+  }
+}
+const PICS=[
+ {n:['dom'],d:(c,x,y,s)=>{c.strokeRect(x-s*.35,y-s*.05,s*.7,s*.45);c.beginPath();c.moveTo(x-s*.45,y-s*.05);c.lineTo(x,y-s*.42);c.lineTo(x+s*.45,y-s*.05);c.closePath();c.stroke();
+   c.strokeRect(x-s*.08,y+s*.15,s*.16,s*.25);c.strokeRect(x-s*.28,y+s*.05,s*.14,s*.14);c.strokeRect(x+s*.14,y+s*.05,s*.14,s*.14);c.strokeRect(x+s*.18,y-s*.38,s*.09,s*.2);
+   c.beginPath();c.moveTo(x-s*.21,y+s*.05);c.lineTo(x-s*.21,y+s*.19);c.moveTo(x-s*.28,y+s*.12);c.lineTo(x-s*.14,y+s*.12);c.stroke()}},
+ {n:['slnko'],d:(c,x,y,s)=>{c.beginPath();c.arc(x,y,s*.22,0,7);c.stroke();for(let i=0;i<12;i++){const a=i*Math.PI/6;c.beginPath();c.moveTo(x+Math.cos(a)*s*.3,y+Math.sin(a)*s*.3);c.lineTo(x+Math.cos(a)*s*.44,y+Math.sin(a)*s*.44);c.stroke()}
+   c.beginPath();c.arc(x-s*.08,y-s*.05,s*.025,0,7);c.arc(x+s*.08,y-s*.05,s*.025,0,7);c.fill();c.beginPath();c.arc(x,y+s*.02,s*.11,.2*Math.PI,.8*Math.PI);c.stroke()}},
+ {n:['ryba'],d:(c,x,y,s)=>{c.beginPath();c.ellipse(x-s*.05,y,s*.32,s*.2,0,0,7);c.stroke();c.beginPath();c.moveTo(x+s*.25,y);c.lineTo(x+s*.45,y-s*.17);c.lineTo(x+s*.45,y+s*.17);c.closePath();c.stroke();
+   c.beginPath();c.arc(x-s*.22,y-s*.05,s*.035,0,7);c.stroke();c.beginPath();c.moveTo(x-s*.05,y-s*.2);c.quadraticCurveTo(x+s*.05,y-s*.35,x+s*.12,y-s*.17);c.stroke();
+   [[-.42,-.3,.04],[-.47,-.4,.03],[-.4,-.48,.025]].forEach(b=>{c.beginPath();c.arc(x+s*b[0],y+s*b[1],s*b[2],0,7);c.stroke()})}},
+ {n:['balón'],d:(c,x,y,s)=>{[[-.2,-.12],[.2,-.12],[0,-.25]].forEach(([dx,dy])=>{c.beginPath();c.moveTo(x+s*dx,y+s*(dy+.19));c.lineTo(x,y+s*.42);c.stroke()});
+   [[0,-.25],[-.2,-.12],[.2,-.12]].forEach(([dx,dy])=>{c.save();c.fillStyle='#fff';c.beginPath();c.ellipse(x+s*dx,y+s*dy,s*.14,s*.18,0,0,7);c.fill();c.stroke();c.restore();
+   c.beginPath();c.moveTo(x+s*dx-s*.025,y+s*(dy+.21));c.lineTo(x+s*dx+s*.025,y+s*(dy+.21));c.lineTo(x+s*dx,y+s*(dy+.18));c.closePath();c.stroke()})}},
+ {n:['kvet','ľalia'],d:(c,x,y,s)=>{c.beginPath();c.moveTo(x,y-s*.05);c.lineTo(x,y+s*.42);c.stroke();
+   c.beginPath();c.ellipse(x-s*.1,y+s*.18,s*.1,s*.04,-.5,0,7);c.stroke();c.beginPath();c.ellipse(x+s*.1,y+s*.28,s*.1,s*.04,.5,0,7);c.stroke();
+   c.save();c.fillStyle='#fff';for(let i=0;i<6;i++){const a=i*Math.PI/3;c.beginPath();c.arc(x+Math.cos(a)*s*.15,y-s*.18+Math.sin(a)*s*.15,s*.075,0,7);c.fill();c.stroke()}
+   c.beginPath();c.arc(x,y-s*.18,s*.08,0,7);c.fill();c.stroke();c.restore()}},
+ {n:['strom'],d:(c,x,y,s)=>{c.strokeRect(x-s*.06,y+s*.08,s*.12,s*.34);
+   c.save();c.fillStyle='#fff';c.beginPath();c.ellipse(x,y-s*.12,s*.3,s*.26,0,0,7);c.fill();c.stroke();c.restore();
+   [[-.15,-.15],[.1,-.22],[.0,-.02],[.18,-.05],[-.1,.03]].forEach(([dx,dy])=>{c.beginPath();c.arc(x+s*dx,y+s*dy,s*.035,0,7);c.stroke()})}},
+ {n:['jablko'],d:(c,x,y,s)=>{c.beginPath();c.moveTo(x,y-s*.18);c.bezierCurveTo(x-s*.45,y-s*.38,x-s*.45,y+s*.35,x,y+s*.3);c.bezierCurveTo(x+s*.45,y+s*.35,x+s*.45,y-s*.38,x,y-s*.18);c.stroke();
+   c.beginPath();c.moveTo(x,y-s*.18);c.lineTo(x+s*.03,y-s*.35);c.stroke();c.beginPath();c.ellipse(x+s*.12,y-s*.3,s*.09,s*.04,-.4,0,7);c.stroke()}},
+ {n:['hviezda'],d:(c,x,y,s)=>{c.beginPath();for(let i=0;i<10;i++){const r=i%2?s*.18:s*.42,a=-Math.PI/2+i*Math.PI/5;c.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r)}c.closePath();c.stroke();
+   c.beginPath();c.arc(x-s*.06,y-s*.02,s*.022,0,7);c.arc(x+s*.06,y-s*.02,s*.022,0,7);c.fill();c.beginPath();c.arc(x,y+s*.03,s*.07,.2*Math.PI,.8*Math.PI);c.stroke()}}
+];
+let colorIdx=0;
+function drawColor(ctx){
+  const p=PICS[colorIdx%PICS.length];
+  sheetBase(ctx,'Vymaľuj');
+  ctx.save();ctx.strokeStyle='#222';ctx.fillStyle='#222';ctx.lineWidth=9;ctx.lineJoin='round';ctx.lineCap='round';
+  p.d(ctx,CW/2,830,1000);ctx.restore();
+  const label=p.n.find(w=>canRead(w));
+  if(label){ctx.save();ctx.font=`700 190px ${FONT}`;ctx.textAlign='center';ctx.lineWidth=6;ctx.strokeStyle='#222';ctx.strokeText(csw(label),CW/2,1520);ctx.restore()}
+}
+function drawMath(ctx){
+  sheetBase(ctx,'Počítaj');
+  const band=curBand(),[lo,hi]=band,cross=store.get('mcross',false);
+  ctx.fillStyle='#2B2D42';
+  if(hi<=10){
+    ctx.font=`700 40px ${FONT}`;ctx.fillText('Koľko ich je?',80,300);
+    for(let r=0;r<3;r++){
+      const n=ri(1,hi), y=380+r*120;
+      for(let i=0;i<n;i++){ctx.beginPath();ctx.arc(110+i*78,y,28,0,7);ctx.lineWidth=4;ctx.strokeStyle='#2B2D42';ctx.stroke()}
+      ctx.lineWidth=4;ctx.strokeRect(CW-200,y-45,100,90);
+    }
+  }else{
+    ctx.font=`700 40px ${FONT}`;ctx.fillText('Doplň chýbajúce čísla:',80,300);
+    for(let r=0;r<3;r++){
+      const st=ri(lo,Math.max(lo,hi-5)), y=400+r*120, miss=shuffle([1,2,3,4]).slice(0,2);
+      for(let i=0;i<6;i++){const x=100+i*175;ctx.lineWidth=4;ctx.strokeRect(x,y-62,140,90);
+        if(!miss.includes(i)){ctx.font=`700 60px ${FONT}`;ctx.textAlign='center';ctx.fillText(String(st+i),x+70,y);ctx.textAlign='left'}}
+    }
+  }
+  ctx.font=`700 40px ${FONT}`;ctx.fillText('Vypočítaj:',80,790);
+  const used=new Set();
+  for(let i=0;i<12;i++){
+    let p,op,k,t=0;
+    do{op=Math.random()<.5?'plus':'minus';p=genProblem(op,band,cross);k=op+p.a+'_'+p.b}while(used.has(k)&&++t<30);
+    used.add(k);
+    const col=i%2, row=Math.floor(i/2), x=100+col*560, y=890+row*125;
+    ctx.font=`700 66px ${FONT}`;const txt=`${p.a} ${op==='plus'?'+':'−'} ${p.b} =`;ctx.fillText(txt,x,y);
+    ctx.lineWidth=4;ctx.strokeRect(x+ctx.measureText(txt).width+20,y-62,hi>10?130:95,85);
+  }
+}
+let dipCol=0;
+function drawDiploma(ctx){
+  const cols=[['#f59e0b','#fff7e6'],['#3b82f6','#eef5ff'],['#10b981','#ecfdf5'],['#ec4899','#fdf2f8']], [c1,c2]=cols[dipCol%cols.length];
+  ctx.fillStyle=c2;ctx.fillRect(0,0,CW,CH);
+  ctx.strokeStyle=c1;ctx.lineWidth=28;ctx.strokeRect(50,50,CW-100,CH-100);ctx.lineWidth=6;ctx.strokeRect(100,100,CW-200,CH-200);
+  ctx.textAlign='center';ctx.fillStyle='#2B2D42';
+  ctx.font=`110px ${FONT}`;ctx.fillText('🏆',CW/2,330);
+  ctx.font=`700 150px ${FONT}`;ctx.fillStyle=c1;ctx.fillText('DIPLOM',CW/2,520);
+  ctx.fillStyle='#2B2D42';ctx.font=`400 50px ${FONT}`;ctx.fillText(g('získava','získava'),CW/2,640);
+  ctx.font=`700 100px ${FONT}`;ctx.fillText(S.name||'______________',CW/2,790);
+  ctx.font=`400 46px ${FONT}`;
+  ctx.fillText(`za ${Math.floor(S.stars/5)} odznakov a ${S.stars} hviezdičiek`,CW/2,920);
+  ctx.fillText('v čítaní a počítaní',CW/2,990);
+  ctx.font=`86px ${FONT}`;const b=Math.floor(S.stars/5);let em='';for(let i=Math.max(0,b-6);i<b;i++)em+=badge(i).e;ctx.fillText(em,CW/2,1170);
+  ctx.font=`400 46px ${FONT}`;ctx.fillText(`${g('Si šikovný','Si šikovná')}! Len tak ďalej!`,CW/2,1300);
+  ctx.font=`400 36px ${FONT}`;const d=new Date();ctx.fillText('Dátum: '+d.getDate()+'. '+(d.getMonth()+1)+'. '+d.getFullYear(),CW/2-280,1530);ctx.fillText('Podpis: ____________',CW/2+260,1530);
+  ctx.font=`60px ${FONT}`;ctx.fillText('🦉',CW-190,CH-170);ctx.font=`400 28px ${FONT}`;ctx.fillText('Zvedavko',CW-190,CH-125);
+  ctx.textAlign='left';
+}
+async function renderSheet(kind,opt){
+  try{await Promise.all([document.fonts.load(`700 100px Andika`),document.fonts.load(`400 100px "Playwrite SK"`)])}catch(e){}
+  const cv=document.createElement('canvas');cv.width=CW;cv.height=CH;const ctx=cv.getContext('2d');
+  if(kind==='write')drawWrite(ctx,opt);else if(kind==='color')drawColor(ctx);else if(kind==='diploma')drawDiploma(ctx);else drawMath(ctx);
+  return cv;
+}
+async function cardsView(kind,opt){
+  const titles={write:'Písanie',color:'Maľovanie',math:'Počítanie',diploma:'Diplom'};
+  setTitle('Karty: '+titles[kind]);
+  opt=opt||(kind==='write'?'letters':'');
+  main.innerHTML=`
+    ${kind==='write'?(()=>{const cur=opt.startsWith('c'),m=cur?opt.slice(1):opt;return `<div class="tabs"><button class="tab ${m==='letters'?'on':''}" data-o="${cur?'c':''}letters">Písmenká</button><button class="tab ${m==='words'?'on':''}" data-o="${cur?'c':''}words">Slová</button></div>
+      <div class="tabs"><button class="tab ${!cur?'on':''}" data-o="${m}">Tlačené</button><button class="tab ${cur?'on':''}" data-o="c${m}">✍️ Písané</button></div>`})():''}
+    <div id="sheetBox" class="muted" style="text-align:center;padding:40px">Pripravujem kartu…</div>
+    <div style="display:flex;gap:8px">
+      <button class="big-btn alt" id="kNew" style="flex:1">${kind==='color'?'➡ Ďalší obrázok':kind==='diploma'?'🔄 Iná farba':'🔄 Iná karta'}</button>
+      <button class="big-btn" id="kDl" style="flex:1">⬇ Stiahnuť</button>
+    </div>
+    <div class="muted" id="kMsg" style="text-align:center;margin-top:8px"></div>`;
+  if(kind==='write')main.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>cardsView('write',b.dataset.o));
+  const cv=await renderSheet(kind,opt);
+  const url=cv.toDataURL('image/png');
+  $('sheetBox').innerHTML=`<img class="sheet" src="${url}" alt="Karta na tlač">`;$('sheetBox').style.padding='0';
+  $('kNew').onclick=()=>{if(kind==='color')colorIdx++;if(kind==='diploma')dipCol++;cardsView(kind,opt)};
+  const names={diploma:'diplom',write:(opt.endsWith('words')?'obtahuj-slova':'obtahuj-pismenka')+(opt.startsWith('c')?'-pisane':''),color:'vymaluj',math:'pocitaj'};
+  $('kDl').onclick=()=>{
+    if(!dlApi){ // samostatný web (napr. GitHub Pages): bežné stiahnutie
+      cv.toBlob(b=>{try{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=names[kind]+'.png';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000)}catch(e){}
+        $('kMsg').innerHTML='Ak sa karta nestiahla, podržte prst na obrázku a zvoľte <b>Uložiť</b> alebo <b>Zdieľať → Tlačiť</b>.'},'image/png');
+      return}
+    cv.toBlob(async b=>{
+      try{const r=await dlApi.save({filename:names[kind]+'.png',data:b});$('kMsg').textContent=r.status==='saved'?'Uložené ✔ Teraz ju môžete vytlačiť.':''}
+      catch(e){$('kMsg').innerHTML=e&&e.code==='declined'?'':'Sťahovanie tu nejde – podržte prst na obrázku a zvoľte <b>Uložiť</b>.'}
+    },'image/png');
+  };
+}
+
+// posluchače nastavení – registrované iba raz
+main.addEventListener('click',e=>{
+  const id=e.target.id;
+  if(id==='vPlay'){pickVoice();say('me, le, mi, li, ve, vi. Mama mele.',0.75)}
+  else if(id==='vYes'){store.set('vok',true);store.set('vbad',false);const y=window.scrollY;home();window.scrollTo(0,y);say('Výborne, ideme čítať!')}
+  else if(id==='vNo'){store.set('vok',false);store.set('vbad',true);$('vHelp').innerHTML=VOICE_HELP;$('vHelp').scrollIntoView({behavior:'smooth'})}
+});
+main.addEventListener('change',e=>{if(e.target.id==='voiceSel'){store.set('voice',e.target.value);pickVoice();say('Ahoj! Ideme čítať.')}});
+applyFont();
+updStars();
+if(!store.get('onboarded',false)&&S.stars>0)store.set('onboarded',true);
+if(store.get('onboarded',false))home();else welcome();
+initCloud();
+</script>
+</body>
+</html>

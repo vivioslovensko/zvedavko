@@ -208,6 +208,39 @@
   .cw{background:#eee;color:#888;border-radius:10px;padding:4px 10px;font-size:15px}
   .cw small{font-size:12px}
   .cw.ok{background:#dcfce7;color:#14532d;font-weight:700}
+  .opts.names .opt{font-size:24px;padding:18px 4px}
+  .opts.shp .opt{padding:6px 0}
+  .fltext{font-family:"Andika",system-ui,sans-serif;font-size:54px;font-weight:700;line-height:1.5;letter-spacing:3px;cursor:pointer;user-select:none;margin-bottom:10px}
+  .fltext .fl{display:inline-block;padding:0 1px;border-radius:10px;transition:color .15s,background .15s,transform .15s}
+  .fltext .fl.next{color:#d1d5db}
+  .fltext .fl.done{color:#2B2D42}
+  .fltext .fl.now{color:#2B2D42;background:#FFE066;transform:scale(1.12);box-shadow:0 3px 0 #f59e0b}
+  .fltext .fl.blend{color:#1D4ED8;background:#dbeafe}
+  .fltext .fl.fin{color:#15803d}
+  .fltext.finished{animation:pop .5s}
+  .fltext .fw{white-space:nowrap;display:inline-block;margin:0 .15em}
+  .fltext{position:relative;padding-bottom:34px}
+  .fltext.long{text-align:left;line-height:1.9}
+  .fltext .fl.wdone{color:#15803d}
+  .fltext .fl.err{animation:shake .4s;background:#fecaca}
+  .finger{position:absolute;font-size:30px;transition:left .25s,top .25s;pointer-events:none;letter-spacing:0}
+  .flLen{justify-content:center;margin-bottom:10px}
+  .flLen .chip{min-width:0;padding:6px 14px;font-size:15px}
+  body.cursive .fltext{font-family:"Playwrite SK",cursive;font-weight:400;font-size:40px;letter-spacing:1px}
+  .flctl .toggle{flex:1;min-width:0;font-size:14px;padding:8px 4px}
+  .trwrap{display:flex;justify-content:center;margin:6px 0}
+  #trc{touch-action:none;background:#fff;border-radius:16px;border:2px solid #f1e6d2}
+  .trch{justify-content:center;margin-bottom:8px}
+  .trch .chip{min-width:0;padding:6px 12px;font-size:15px}
+  #stopOv{position:fixed;inset:0;z-index:60;background:linear-gradient(180deg,#bbf7d0,#FFF8EC);display:flex;align-items:center;justify-content:center;padding:20px}
+  .stopc{background:#fff;border-radius:28px;padding:24px 18px;text-align:center;max-width:420px;box-shadow:0 8px 30px rgba(0,0,0,.12)}
+  .stopc h2{font-size:30px;margin:8px 0}
+  .stopc p{font-size:19px;line-height:1.45}
+  .pgate{margin-top:14px;font-size:15px}
+  .pgate summary{color:var(--muted);cursor:pointer}
+  .privacy{font-size:16px;line-height:1.55}
+  .privacy h1{font-size:24px;margin:0 0 4px} .privacy h2{font-size:18px;margin:20px 0 6px}
+  .privacy .upd{color:var(--muted);margin:0 0 10px} .privacy ul{padding-left:20px} .privacy li{margin:4px 0}
   .note.warn{background:#FFE1DC}
   select{font-family:inherit;font-size:15px;padding:6px;border-radius:10px;border:2px solid #e6d9c2;max-width:200px}
   .note{background:#FFF1CC;border-radius:14px;padding:10px 12px;font-size:15px;margin-top:10px}
@@ -276,8 +309,8 @@ function updCloudNote(){document.querySelectorAll('.cloudNote').forEach(n=>n.inn
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')cloudSave(true)});
 
 // Úložisko: nastavenia zariadenia sú spoločné, ostatné má každé dieťa (profil) zvlášť
-const GLOBAL_KEYS=['voice','vok','vbad','profiles','cur','sound','slow','bad'];
-const PROFILE_KEYS=['name','upper','cursive','split','stars','known','girl','mmax','mpics','mband','mcross','cwords','csents','onboarded','stats','days','act','flash'];
+const GLOBAL_KEYS=['voice','vok','vbad','profiles','cur','sound','slow','bad','sfx'];
+const PROFILE_KEYS=['limit','tday','shapes3d','name','upper','cursive','split','stars','known','girl','mmax','mpics','mband','mcross','cwords','csents','onboarded','stats','days','act','flash'];
 function curProf(){return +(LS.get('citanie_cur')||0)||0}
 const keyFor=(k,id)=>GLOBAL_KEYS.includes(k)||id===0?'citanie_'+k:'citanie_p'+id+'_'+k;
 const store={
@@ -293,6 +326,7 @@ function loadS(){Object.assign(S,{
   cursive:store.get('cursive',false),
   split:store.get('split',true),
   sound:store.get('sound',true),
+  sfx:store.get('sfx',true),
   stars:store.get('stars',0),
   known:store.get('known',['A','E','I','L','M','V']),
   slow:store.get('slow',false),
@@ -346,8 +380,8 @@ const BADGES=[['🐣','Začiatočník'],['📖','Malý čitateľ'],['🔤','Pán
 function badge(i){const b=BADGES[i%BADGES.length], lvl=Math.floor(i/BADGES.length);return{e:b[0],n:b[1]+(lvl?' '+(lvl+1)+'.':'')}}
 function badgeHTML(i,locked){const b=badge(i);return locked?`<div class="badge lock"><div class="b">🔒</div>?</div>`:`<div class="badge"><div class="b">${b.e}</div>${esc(b.n)}</div>`}
 const g=(m,f)=>S.girl?f:m;
-const PRAISE_M=['Výborne!','Super!','Bravo!','Paráda!','Si šikovný!','Skvelé!','Presne tak!'];
-const PRAISE_F=['Výborne!','Super!','Bravo!','Paráda!','Si šikovná!','Skvelé!','Presne tak!'];
+const PRAISE_M=['Výborne!','Super!','Paráda!','Si šikovný!','Skvelé!','Presne tak!','Úžasné!','Tak je to!'];
+const PRAISE_F=['Výborne!','Super!','Paráda!','Si šikovná!','Skvelé!','Presne tak!','Úžasné!','Tak je to!'];
 
 /* ---------- Pomocné ---------- */
 const main=document.getElementById('main');
@@ -404,15 +438,50 @@ function pickVoice(){
 const hasSk=()=>!!(voice&&/^sk/i.test(voice.lang));
 if(hasTTS){pickVoice();speechSynthesis.onvoiceschanged=()=>{pickVoice();const vb=$('voiceBox');if(vb)vb.innerHTML=voiceBoxHTML()}}
 function stopSpeak(){try{hasTTS&&speechSynthesis.cancel()}catch(e){}}
+// Text pre hlas: VEĽKÉ slová → malé (inak ich hlas číta ako skratku alebo zle),
+// zjednotená diakritika (NFC) a bodka na konci (hlas dokončí poslednú hlásku: mama, nie „mame“)
+function ttsText(t){
+  t=String(t).normalize('NFC').replace(/[·•‧\-]/g,'').replace(/\s+/g,' ').trim();
+  t=t.replace(/[A-ZÁÄČĎÉÍĹĽŇÓÔŔŠŤÚÝŽ]{2,}/g,w=>w.toLocaleLowerCase('sk'));
+  if(!/[.!?]$/.test(t))t+='.';
+  return t;
+}
+/* ---------- Zvukové efekty (bez súborov, cez Web Audio) ---------- */
+let actx=null;
+function audio(){
+  if(!actx){const A=window.AudioContext||window.webkitAudioContext;if(!A)return null;try{actx=new A()}catch(e){return null}}
+  if(actx.state==='suspended')actx.resume().catch(()=>{});
+  return actx;
+}
+['touchstart','pointerdown','keydown'].forEach(ev=>document.addEventListener(ev,()=>{if(S.sfx)audio()},{once:true,passive:true}));
+function tone(ac,f,t0,dur,type,vol){
+  const o=ac.createOscillator(),g=ac.createGain();
+  o.type=type||'sine';o.frequency.setValueAtTime(f,t0);
+  g.gain.setValueAtTime(0.0001,t0);g.gain.exponentialRampToValueAtTime(vol||0.18,t0+0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  o.connect(g);g.connect(ac.destination);o.start(t0);o.stop(t0+dur+0.05);
+}
+function sfx(kind){
+  if(!S.sfx)return; const ac=audio(); if(!ac)return;
+  const t=ac.currentTime+0.01;
+  try{
+    if(kind==='ok'){tone(ac,784,t,.18,'triangle',.2);tone(ac,1175,t+.1,.3,'triangle',.18)}
+    else if(kind==='bad'){tone(ac,330,t,.16,'sine',.14);tone(ac,262,t+.12,.24,'sine',.12)}
+    else if(kind==='win'){[523,659,784,1047].forEach((f,i)=>tone(ac,f,t+i*.12,.35,'triangle',.18));tone(ac,1319,t+.5,.6,'sine',.1)}
+    else if(kind==='badge'){[784,988,1175,1568].forEach((f,i)=>tone(ac,f,t+i*.09,.4,'sine',.15))}
+  }catch(e){}
+}
 function say(text,rate){
   if(!S.sound||!hasTTS||!text)return;
+  text=ttsText(text);
   if(!voice)pickVoice();
   try{
     const busy=speechSynthesis.speaking||speechSynthesis.pending;
     speechSynthesis.cancel();
     const u=new SpeechSynthesisUtterance(text);
+    u.volume=1;
     u.lang=voice?voice.lang:'sk-SK'; if(voice)u.voice=voice;
-    u.rate=Math.max(0.5,(rate||0.9)*(S.slow?0.8:1)); u.pitch=1;
+    u.rate=Math.max(0.6,(rate||0.9)*(S.slow?0.85:1)); u.pitch=1;
     // Chrome niekedy "zje" novú vetu hneď po zrušení starej – preto malá pauza
     if(busy)setTimeout(()=>speechSynthesis.speak(u),80); else speechSynthesis.speak(u);
   }catch(e){}
@@ -427,6 +496,7 @@ function voiceBoxHTML(){
   if(!hasTTS)return '<div class="note">Tento prehliadač nevie čítať nahlas. Hra funguje aj bez zvuku – slová mu prečítajte vy.</div>';
   const opts=voiceList.map(v=>`<option value="${esc(v.name)}" ${voice&&v.name===voice.name?'selected':''}>${esc(v.name)} (${esc(v.lang)})${v.localService?'':' ☁'}</option>`).join('');
   let h=voiceList.length?`<div class="row"><span>Hlas</span><select id="voiceSel">${opts}</select></div>`:'';
+  if(/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent))h+=`<div class="note" style="margin-top:8px">📱 <b>Krajší a správnejší hlas na iPhone:</b> Nastavenia → Prístupnosť → Hovorený obsah → Hlasy → Slovenčina → <b>Laura (vylepšená)</b> → stiahnuť. Potom Zvedavka zavrite a znova otvorte a tu vyberte Lauru.</div>`;
   return h;
 }
 
@@ -449,6 +519,8 @@ function home(){
      <button class="card c1" id="hL"><span class="big">🔤</span>Písmenká<small>${S.known.map(cs).join(' ')||'—'}</small></button>
      <button class="card c2" id="hY" ${sy.length?'':'disabled'}><span class="big">🧩</span>Slabiky<small>${sy.slice(0,3).map(cs).join(' · ')||'—'}</small></button>
      <button class="card c5 wide" id="hB" ${buildPool().length||sy.length?'':'disabled'}><span class="big">✏️</span><div>Skladaj slová<br><small>z písmeniek, ktoré poznáš</small></div></button>
+     <button class="card c1 wide" id="hP" ${S.known.length?'':'disabled'}><span class="big">✍️</span><div>Píš prstom<br><small>obťahuj písmenká na obrazovke</small></div></button>
+     <button class="card c3 wide" id="hF" ${getWords().filter(x=>canRead(x.w)).length?'':'disabled'}><span class="big">🔦</span><div>Čítanie so svetielkom<br><small>písmenká sa rozsvecujú postupne</small></div></button>
      <button class="card c3" id="hW" ${ws?'':'disabled'}><span class="big">🖼️</span>Slová<small>${ws} slov</small></button>
      <button class="card c4" id="hS" ${ss?'':'disabled'}><span class="big">📖</span>Vety<small>${ss>300?'stovky':ss} viet</small></button>
      <button class="card c2" id="hT" ${canStory()?'':'disabled'}><span class="big">📚</span>Príbehy<small>prečítaj a odpovedz</small></button>
@@ -502,9 +574,13 @@ function home(){
      <div class="row"><span>Písmo</span><button class="toggle on" id="tUpper">${S.cursive?'✍️ písané':S.upper?'VEĽKÉ':'malé'}</button></div>
      <div class="row"><span>Farebné slabiky</span><button class="toggle ${S.split?'on':''}" id="tSplit">${S.split?'Áno':'Nie'}</button></div>
      <div class="row"><span>Zvuk</span><button class="toggle ${S.sound?'on':''}" id="tSound">${S.sound?'Zapnutý':'Vypnutý'}</button></div>
+     <div class="row" style="flex-wrap:wrap"><span>⏰ Denný limit hrania<br><small class="muted">dnes: ${Math.round(playedSec()/60)} min</small></span>
+       <div class="chips" style="margin:0">${LIMITS.map(l=>`<button class="chip ${store.get('limit',0)===l?'on':''}" data-lim="${l}" style="min-width:0;padding:6px 10px;font-size:14px">${l?l+' min':'bez limitu'}</button>`).join('')}</div></div>
+     <div class="row"><span>Zvukové efekty 🎵</span><button class="toggle ${S.sfx?'on':''}" id="tSfx">${S.sfx?'Zapnuté':'Vypnuté'}</button></div>
      <div class="row"><span>Rýchlosť reči</span><button class="toggle on" id="tSlow">${S.slow?'Pomaly':'Normálne'}</button></div>
      <div id="voiceBox">${voiceBoxHTML()}</div>
 
+     <button class="toggle" id="hPriv" style="display:block;margin:12px auto 0">🔒 Zásady ochrany súkromia</button>
      <div class="note">Tip: nech dieťa číta nahlas samo. Tlačidlo 🔊 je na kontrolu alebo nápovedu.</div>
    </div>`;
   main.querySelectorAll('[data-card]').forEach(b=>b.onclick=()=>cardsView(b.dataset.card));
@@ -512,7 +588,7 @@ function home(){
   $('hProf2').onclick=profilesView; $('hD').onclick=dailyGame; $('hT').onclick=storyGame; $('hG').onclick=gamesMenu; $('hProf').onclick=profilesView;
   if($('hOv'))$('hOv').onclick=overview;
   $('hL').onclick=()=>ourLetters(); $('hY').onclick=()=>sylView(); $('hB').onclick=buildMenu;
-  $('hW').onclick=wordsMenu2; $('hS').onclick=ourSent; $('hM').onclick=mathMenu;
+  $('hF').onclick=flGame; $('hP').onclick=traceGame; $('hW').onclick=wordsMenu2; $('hS').onclick=ourSent; $('hM').onclick=mathMenu;
   main.querySelectorAll('.chip[data-l]').forEach(b=>b.onclick=()=>{
     const L=b.dataset.l;
     S.known=S.known.includes(L)?S.known.filter(x=>x!==L):ALL_KEYS.filter(x=>x===L||S.known.includes(x));
@@ -546,6 +622,9 @@ function home(){
     save('upper');save('cursive');applyFont();rer()};
   $('tSplit').onclick=()=>{S.split=!S.split;save('split');rer()};
   $('tSound').onclick=()=>{S.sound=!S.sound;save('sound');rer();if(S.sound)say('Zvuk je zapnutý.')};
+  main.querySelectorAll('[data-lim]').forEach(b=>b.onclick=()=>{store.set('limit',+b.dataset.lim);tWarned=false;rer()});
+  $('hPriv').onclick=privacyView;
+  $('tSfx').onclick=()=>{S.sfx=!S.sfx;save('sfx');rer();if(S.sfx)sfx('ok')};
   $('tSlow').onclick=()=>{S.slow=!S.slow;save('slow');rer();say('Mama, lama, mimi.')};
 
 }
@@ -794,7 +873,7 @@ function buildGame(mode){
           if(pos===chars.length) finish(mistakes===0);
         }else{
           mistakes++; b.classList.remove('bad'); void b.offsetWidth; b.classList.add('bad'); setTimeout(()=>b.classList.remove('bad'),450);
-          say('Skús iné písmenko.');
+          sfx('bad');setTimeout(()=>say('Skús iné písmenko.'),250);
         }
       });
     },bind(){
@@ -939,17 +1018,20 @@ function mathMenu(){
      <button class="level c3" data-m="word"><span style="font-size:40px">📝</span><div>Slovné úlohy<span>Ema mala 5 jabĺk…</span></div></button>
      <button class="level c6" data-m="clock"><span style="font-size:40px">🕐</span><div>Hodiny<span>${band[1]>10?'celé a pol hodiny':'celé hodiny'}</span></div></button>
      <button class="level c4" data-m="money"><span style="font-size:40px">💶</span><div>Peniaze<span>koľko eur je spolu?</span></div></button>
+     <button class="level c2" data-m="shapes"><span style="font-size:40px">🔺</span><div>Tvary<span>${store.get('shapes3d',false)?'kruh, štvorec… aj kocka, guľa':'kruh, štvorec, obdĺžnik, trojuholník'}</span></div></button>
    </div>
    <div class="panel">
      <h3>Čísla od – do</h3>
      <div class="chips">${BANDS.map((b,i)=>`<button class="chip ${b[0]===band[0]&&b[1]===band[1]?'on':''}" data-b="${i}" style="min-width:74px;font-size:17px">${bandLabel(b)}</button>`).join('')}</div>
      ${band[1]>10&&(band[0]===0)?`<div class="row" style="margin-top:8px"><span>Prechod cez desiatku<br><small class="muted">napr. 8 + 5, 13 − 6</small></span><button class="toggle ${cross?'on':''}" id="tCross">${cross?'Áno':'Nie'}</button></div>`:''}
+     <div class="row"><span>Tvary: aj telesá<br><small class="muted">kocka, guľa, valec, kužeľ, kváder</small></span><button class="toggle ${store.get('shapes3d',false)?'on':''}" id="t3d">${store.get('shapes3d',false)?'Áno':'Nie'}</button></div>
      <div class="row"><span>Obrázky na pomoc</span><button class="toggle ${S.mpics?'on':''}" id="tPics">${S.mpics?'Áno':'Nie'}</button></div>
    </div>`;
   main.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>mathGame(b.dataset.m));
   main.querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{store.set('mband',BANDS[+b.dataset.b]);S.mmax=BANDS[+b.dataset.b][1];save('mmax');const y=window.scrollY;mathMenu();window.scrollTo(0,y)});
   if($('tCross'))$('tCross').onclick=()=>{store.set('mcross',!cross);mathMenu()};
   $('tPics').onclick=()=>{S.mpics=!S.mpics;save('mpics');mathMenu()};
+  $('t3d').onclick=()=>{store.set('shapes3d',!store.get('shapes3d',false));const y=window.scrollY;mathMenu();window.scrollTo(0,y)};
 }
 // Klávesnica na čísla (pri rozsahu nad 10)
 function keypadUI(box,r,finish,onShow){
@@ -965,12 +1047,12 @@ function keypadUI(box,r,finish,onShow){
     else if(d==='ok'){
       if(!v)return;
       if(+v===r){done=true;$('ans').classList.remove('bad');$('ans').classList.add('good');onShow&&onShow(v);finish(mistakes===0)}
-      else{mistakes++;const a=$('ans');a.classList.remove('bad');void a.offsetWidth;a.classList.add('bad');say('Skús ešte raz.');v=''}
+      else{mistakes++;const a=$('ans');a.classList.remove('bad');void a.offsetWidth;a.classList.add('bad');sfx('bad');setTimeout(()=>say('Skús ešte raz.'),250);v=''}
     }else if(v.length<3)v=(v==='0'?'':v)+d;
     show();
   });
 }
-const MATH_TITLES={count:'Koľko ich je?',plus:'Plus',minus:'Mínus',mix:'Plus aj mínus',cmp:'Porovnávanie',line:'Číselná os',word:'Slovné úlohy',clock:'Hodiny',money:'Peniaze'};
+const MATH_TITLES={shapes:'Tvary',count:'Koľko ich je?',plus:'Plus',minus:'Mínus',mix:'Plus aj mínus',cmp:'Porovnávanie',line:'Číselná os',word:'Slovné úlohy',clock:'Hodiny',money:'Peniaze'};
 function mathGame(mode){setTitle(MATH_TITLES[mode]);runQuiz({n:10,again:()=>mathGame(mode),make:mathMaker(mode)})}
 function mathMaker(mode){
   if(EXTRA_MATH[mode])return EXTRA_MATH[mode]();
@@ -1026,7 +1108,7 @@ function runQuiz(cfg){
       it.custom($('cbox'),firstTry=>{
         if(done)return;done=true;
         if(firstTry){score++;addStar()}
-        say((it.ok?it.ok+'! ':'')+(firstTry?praise():'Dobre!'));confetti(firstTry?8:3);owl(firstTry?praise():'Dobre! 👍');
+        if(firstTry||!it.track||!['T:svetielko','T:pisanie'].includes(it.track[0])){say((it.ok?it.ok+'! ':'')+(firstTry?praise():'Dobre!'));confetti(firstTry?8:3);owl(firstTry?praise():'Dobre! 👍')}
         finishItem(firstTry,1700);
       });
     }
@@ -1041,11 +1123,11 @@ function runQuiz(cfg){
         done=true; b.classList.add('ok');
         const qm=main.querySelector('.qm'); if(qm){qm.textContent=b.textContent;qm.style.color='var(--green)'}
         if(tries===0){score++;addStar()}
-        const p=praise();say((it.ok?it.ok+'! ':'')+p);owl(p);
+        const p=praise();sfx('ok');setTimeout(()=>say((it.ok?it.ok+'! ':'')+p),300);owl(p);
         finishItem(tries===0,1600);
       }else{
         tries++; b.classList.add('bad'); b.disabled=true;
-        say('Skús ešte raz.');owl('Skús ešte raz 💪');
+        sfx('bad');setTimeout(()=>say('Skús ešte raz.'),250);owl('Skús ešte raz 💪');
       }
     });
     if(it.bind)it.bind(main);
@@ -1075,8 +1157,10 @@ function showResult(score,n,start,again){
   document.getElementById('toHome').onclick=home;
   say((good?'Výborne':'Dobrá práca')+(S.name?', '+S.name:'')+'! '+g('Získal','Získala')+' si '+score+' '+starWord(score)+'.'+(newBadge?' A máš nový odznak: '+newBadge+'!':''));
   confetti(good?28:12);
+  if(newBadge)setTimeout(()=>sfx('badge'),900);
 }
 function confetti(k){
+  sfx(k>=20?'win':'ok');
   const box=document.createElement('div');box.className='confetti';
   const em=['⭐','🎉','✨','🌟','🎈'];
   for(let i=0;i<k;i++){
@@ -1377,6 +1461,54 @@ function moneyHTML(v){
   return`<span class="bill" style="background:${col}">${v} €</span>`;
 }
 
+/* ---------- Tvary a telesá ---------- */
+const SH2=['kruh','štvorec','obdĺžnik','trojuholník'], SH3=['kocka','guľa','valec','kužeľ','kváder'];
+const SH_ACC={kocka:'kocku',guľa:'guľu'};                     // Nájdi kocku…
+const SH_GEN={kruh:'kruhov',štvorec:'štvorcov',obdĺžnik:'obdĺžnikov',trojuholník:'trojuholníkov'}; // Koľko je tu kruhov?
+const SH_COL=['#ef4444','#3b82f6','#facc15','#22c55e','#a855f7','#fb923c'];
+function shapeEl(t,cx,cy,s,col,rot){
+  const st=`fill="${col}" stroke="#1f2937" stroke-width="3" stroke-linejoin="round"`, R=`transform="rotate(${rot||0} ${cx} ${cy})"`, dk='fill="#000" fill-opacity=".18" stroke="#1f2937" stroke-width="3" stroke-linejoin="round"';
+  if(t==='kruh')return`<circle cx="${cx}" cy="${cy}" r="${s/2}" ${st}/>`;
+  if(t==='štvorec')return`<rect x="${cx-s/2}" y="${cy-s/2}" width="${s}" height="${s}" ${st} ${R}/>`;
+  if(t==='obdĺžnik')return`<rect x="${cx-s*.72}" y="${cy-s*.36}" width="${s*1.44}" height="${s*.72}" ${st} ${R}/>`;
+  if(t==='trojuholník'){const h=s*.9;return`<polygon points="${cx},${cy-h/2} ${cx+s*.55},${cy+h/2} ${cx-s*.55},${cy+h/2}" ${st} ${R}/>`}
+  if(t==='guľa')return`<circle cx="${cx}" cy="${cy}" r="${s/2}" ${st}/><ellipse cx="${cx}" cy="${cy}" rx="${s/2}" ry="${s/7}" fill="none" stroke="#1f2937" stroke-width="2" stroke-dasharray="5 5"/><circle cx="${cx-s*.17}" cy="${cy-s*.18}" r="${s*.08}" fill="#fff" opacity=".7"/>`;
+  if(t==='kocka'||t==='kváder'){
+    const w=t==='kocka'?s*.66:s*1.0, h=t==='kocka'?s*.66:s*.5, d=s*.3, x=cx-(w+d)/2, y=cy-(h-d)/2;
+    return`<rect x="${x}" y="${y}" width="${w}" height="${h}" ${st}/><polygon points="${x},${y} ${x+d},${y-d} ${x+w+d},${y-d} ${x+w},${y}" ${st}/><polygon points="${x},${y} ${x+d},${y-d} ${x+w+d},${y-d} ${x+w},${y}" fill="#fff" fill-opacity=".35" stroke="none"/>
+      <polygon points="${x+w},${y} ${x+w+d},${y-d} ${x+w+d},${y+h-d} ${x+w},${y+h}" ${st}/><polygon points="${x+w},${y} ${x+w+d},${y-d} ${x+w+d},${y+h-d} ${x+w},${y+h}" ${dk}/>`;
+  }
+  if(t==='valec'){const w=s*.7,h=s*.8,ry=w/6;
+    return`<path d="M${cx-w/2},${cy-h/2} L${cx-w/2},${cy+h/2} A${w/2},${ry} 0 0 0 ${cx+w/2},${cy+h/2} L${cx+w/2},${cy-h/2}" ${st}/><ellipse cx="${cx}" cy="${cy-h/2}" rx="${w/2}" ry="${ry}" ${st}/><ellipse cx="${cx}" cy="${cy-h/2}" rx="${w/2}" ry="${ry}" fill="#fff" fill-opacity=".35" stroke="none"/>`}
+  if(t==='kužeľ'){const w=s*.8,h=s*.85,ry=w/6;
+    return`<path d="M${cx},${cy-h/2} L${cx+w/2},${cy+h/2} A${w/2},${ry} 0 0 1 ${cx-w/2},${cy+h/2} Z" ${st}/><path d="M${cx+w/2},${cy+h/2} A${w/2},${ry} 0 0 0 ${cx-w/2},${cy+h/2}" fill="none" stroke="#1f2937" stroke-width="2" stroke-dasharray="5 5"/>`}
+  return'';
+}
+const shapeSVG=(t,w,col,rot)=>`<svg viewBox="0 0 120 120" width="${w}" height="${w}" style="display:block;margin:0 auto">${shapeEl(t,60,62,78,col,rot)}</svg>`;
+EXTRA_MATH.shapes=function(){
+  const pool=store.get('shapes3d',false)?[...SH2,...SH3]:SH2;
+  const next=wqueue(pool,x=>['T:'+x]);
+  return()=>{
+    const t=next(), col=rand(SH_COL), rot=rand([0,0,0,15,-15,30,45]);
+    const q=rand(SH2.includes(t)?['name','find','count']:['name','find']);
+    const others=shuffle(pool.filter(x=>x!==t)).slice(0,3);
+    if(q==='name')return{label:'🔺 Tvary',prompt:`<div class="q">Ktorý je to tvar?</div>${shapeSVG(t,190,col,rot)}`,
+      optClass:'txt four names',options:shuffle([t,...others]).map(o=>({html:esc(csw(o)),correct:o===t})),auto:'Ktorý je to tvar?',ok:t,track:['M:shapes','T:'+t]};
+    if(q==='find'){const ask='Nájdi '+(SH_ACC[t]||t);
+      return{label:'🔺 Tvary',prompt:`<div class="q">${esc(ask)}</div><button class="sp" id="spk">🔊 Počúvaj</button>`,
+        optClass:'four shp',options:shuffle([t,...others]).map(o=>({html:shapeSVG(o,92,rand(SH_COL),rand([0,0,20,-20])),correct:o===t})),
+        auto:ask,ok:'Áno, '+t,track:['M:shapes','T:'+t],bind(){$('spk').onclick=()=>say(ask,0.85)}};}
+    // spočítaj tvary v obrázku
+    const n=ri(5,10), cells=shuffle(Array.from({length:12},(_,i)=>i)).slice(0,n);
+    let types=cells.map(()=>rand(SH2)); if(!types.includes(t))types[0]=t;
+    const r=types.filter(x=>x===t).length;
+    const els=cells.map((c,i)=>shapeEl(types[i],40+(c%4)*80+ri(-8,8),40+Math.floor(c/4)*80+ri(-6,6),52,rand(SH_COL),rand([0,0,15,-15,30]))).join('');
+    const ask=`Koľko je tu ${SH_GEN[t]}?`;
+    return{label:'🔺 Tvary',prompt:`<div class="q">${esc(ask)}</div><svg viewBox="0 0 320 240" style="width:100%;max-width:340px;display:block;margin:6px auto">${els}</svg>`,
+      optClass:'pad',options:padOptions(r,10),auto:ask,ok:String(r),track:['M:shapes']};
+  };
+};
+
 /* =====================================================================
    DENNÁ VÝZVA
    ===================================================================== */
@@ -1387,12 +1519,13 @@ function readingMakers(){
   if(getSents().filter(x=>canRead(x[0])).length)m.push(sentMaker());
   if(sylPool().length){m.push(pseudoMaker());m.push(sylFindMaker())}
   if(canStory())m.push(storyMaker());
+  if(getWords().filter(x=>canRead(x.w)).length)m.push(flMaker());
   if(S.known.length>=2)m.push(letterMaker());
   return m;
 }
 function dailyGame(){
   setTitle('🔥 Denná výzva');
-  const rm=readingMakers(), mm=[mathMaker('mix'),mathMaker('mix'),EXTRA_MATH.cmp(),EXTRA_MATH.line()];
+  const rm=readingMakers(), mm=[mathMaker('mix'),mathMaker('mix'),EXTRA_MATH.cmp(),EXTRA_MATH.line(),EXTRA_MATH.shapes()];
   const rmix=rm.length?mixMaker(rm):null, mmix=mixMaker(mm); let k=0;
   runQuiz({n:12,again:dailyGame,make:()=>(rmix&&k++%2===0)?rmix():mmix(),
     onDone(){const was=dailyDone();markDaily();if(!was)setTimeout(()=>{owl('Výzva splnená! Séria: '+streak()+' 🔥');say('Denná výzva je splnená! Máš sériu '+streak()+'.')},2600)}});
@@ -1418,7 +1551,7 @@ function overview(){
   const week=[];const d=new Date();d.setDate(d.getDate()-6);
   for(let i=0;i<7;i++){const k=today(d);week.push([['Ne','Po','Ut','St','Št','Pi','So'][d.getDay()],act[k]||0,days.has(k)]);d.setDate(d.getDate()+1)}
   const weak=Object.entries(st).filter(([k,e])=>/^(S|W):/.test(k)&&e[0]+e[1]>=2&&e[1]/(e[0]+e[1])>=.3).sort((a,b)=>b[1][1]/(b[1][0]+b[1][1])-a[1][1]/(a[1][0]+a[1][1])).slice(0,8);
-  const M={plus:'Plus',minus:'Mínus',count:'Spočítavanie',cmp:'Porovnávanie',line:'Číselná os',word:'Slovné úlohy',clock:'Hodiny',money:'Peniaze'};
+  const M={shapes:'Tvary',plus:'Plus',minus:'Mínus',count:'Spočítavanie',cmp:'Porovnávanie',line:'Číselná os',word:'Slovné úlohy',clock:'Hodiny',money:'Peniaze'};
   const maxA=Math.max(1,...week.map(w=>w[1]));
   main.innerHTML=`
     <div class="panel" style="margin-top:0;text-align:center">
@@ -1442,6 +1575,7 @@ function overview(){
     <div class="panel"><h3>Spolu</h3>
       <div class="row"><span>Hviezdičky</span><b>⭐ ${S.stars}</b></div>
       <div class="row"><span>Odznaky</span><b>🎖️ ${Math.floor(S.stars/5)}</b></div>
+      <div class="row"><span>Dnes hral(a)</span><b>⏰ ${Math.round(playedSec()/60)} min${store.get('limit',0)?' z '+(store.get('limit',0)+tLoad().extra)+' min':''}</b></div>
       <div class="row"><span>Úlohy za 7 dní</span><b>${week.reduce((a,w)=>a+w[1],0)}</b></div>
       <button class="toggle" id="resetSt" style="margin-top:8px">Vynulovať štatistiky</button><span id="rsMsg"></span></div>`;
   $('pw').onclick=practiceWeak;
@@ -1503,6 +1637,313 @@ function profilesView(){
   };
 }
 
+/* =====================================================================
+   ČÍTANIE SO SVETIELKOM – text sa rozsvecuje písmenko po písmenku
+   (alebo po slabikách), aby dieťa čítalo zľava doprava a spájalo hlásky do slabík
+   ===================================================================== */
+function flUnits(text){
+  const out=[]; let sid=0;
+  text.split(' ').forEach((w,wi)=>{
+    if(wi>0)out.push({t:' ',sp:true});
+    const letters=[];
+    for(let k=0;k<w.length;k++){const two=w.slice(k,k+2).toLocaleLowerCase('sk');if(['ch','dz','dž'].includes(two)){letters.push(w.slice(k,k+2));k++}else letters.push(w[k])}
+    const syls=syllabify(w.replace(/[.,!?]/g,'')).split('-');
+    let si=0, rem=syls[0]?syls[0].length:0;
+    letters.forEach(ch=>{
+      if(/[.,!?]/.test(ch)){out.push({t:ch,pu:true,w:wi});return}
+      out.push({t:ch,syl:sid+si,w:wi}); rem-=ch.length;
+      if(rem<=0&&si<syls.length-1){si++;rem=syls[si].length}
+    });
+    sid+=syls.length;
+  });
+  return out;
+}
+const FL_LEN=[['word','Slová'],['sent','Vety'],['text','Príbeh']];
+function flMaker(){
+  const cw=new Set(customWords().map(x=>x.toLocaleLowerCase('sk')));
+  const words=getWords().filter(x=>canRead(x.w)).map(x=>x.w.replace(/-/g,''));
+  const wPool=words.concat(words.filter(w=>cw.has(w.toLocaleLowerCase('sk'))),words.filter(w=>cw.has(w.toLocaleLowerCase('sk'))));
+  const sPool=getSents().filter(x=>canRead(x[0])&&x[0].split(' ').length<=4).map(x=>x[0]);
+  const nextW=queue(wPool.length?wPool:['mama']), nextS=sPool.length?queue(sPool):null;
+  return()=>{
+    let len=store.get('fl_len','word'); if(len!=='word'&&!nextS)len='word';
+    const text=len==='word'?nextW():len==='sent'?nextS():[nextS(),nextS(),nextS()].join(' ');
+    const U=flUnits(text), mode=store.get('fl_mode','let');
+    const show=t=>S.upper&&!S.cursive?t.toLocaleUpperCase('sk'):t;
+    const fs=len==='text'?32:text.length>14?36:text.length>8?44:54;
+    return{label:'🔦 Čítanie so svetielkom',prompt:`
+      <div class="chips flLen">${FL_LEN.map(([k,l])=>`<button class="chip ${k===len?'on':''}" data-len="${k}" ${k!=='word'&&!nextS?'disabled':''}>${l}</button>`).join('')}</div>
+      <div class="fltext ${len==='text'?'long':''}" id="flt" style="font-size:${fs}px"><span class="fw">${U.map((u,i)=>u.sp?'</span> <span class="fw">':`<span class="fl" data-i="${i}" data-s="${u.syl??''}">${esc(show(u.t))}</span>`).join('')}</span><div class="finger" id="flF">👆</div></div>
+      <div class="muted" id="flHint">${mode==='let'?'Čítaj písmenko po písmenku. Keď sa slabika rozsvieti modro, prečítaj ju celú.':'Čítaj slabiku po slabike.'}</div>`,
+      ok:'',track:['T:svetielko'],
+      custom:(box,finish)=>{
+        const letterIdx=U.map((u,i)=>(!u.sp&&!u.pu)?i:-1).filter(i=>i>=0);
+        const steps=mode==='let'?letterIdx.map(i=>[i]):[...new Set(letterIdx.map(i=>U[i].syl))].map(sy=>letterIdx.filter(i=>U[i].syl===sy));
+        let pos=0, timer=null, mistakes=0; const speed=store.get('fl_speed',0), sayW=store.get('fl_say',true);
+        box.innerHTML=`<div class="flctl">
+            <div style="display:flex;gap:8px"><button class="big-btn" id="flNext" style="flex:3;margin-top:0">👉 Ďalej</button><button class="big-btn" id="flErr" style="flex:1;margin-top:0;background:#fecaca;font-size:18px">✋ chyba</button></div>
+            <div style="display:flex;gap:6px;margin-top:10px">
+              <button class="toggle ${mode==='let'?'on':''}" id="flL">po písmenkách</button>
+              <button class="toggle ${mode==='syl'?'on':''}" id="flS">po slabikách</button>
+              <button class="toggle ${speed?'on':''}" id="flA">${speed?'⏸ auto':'▶ auto'}</button>
+              <button class="toggle ${sayW?'on':''}" id="flW">${sayW?'🔊 slovo':'🔇 slovo'}</button>
+            </div></div>
+          <div id="flEnd" style="display:none">
+            <button class="big-btn" id="flOk">✅ ${g('Prečítal','Prečítala')} správne</button>
+            <div style="display:flex;gap:8px"><button class="big-btn alt" id="flAgain" style="flex:1">🔁 Ešte raz</button><button class="big-btn alt" id="flSkip" style="flex:1">➡ Ďalej</button></div></div>`;
+        const flt=$('flt'), els=[...flt.querySelectorAll('.fl')], fing=$('flF');
+        const word=wi=>U.filter(u=>u.w===wi&&!u.pu&&!u.sp).map(u=>u.t).join('');
+        const moveFinger=()=>{
+          const cur=steps[pos]; if(!cur){fing.style.opacity=0;return}
+          const a=els.find(e=>+e.dataset.i===cur[0]), b=els.find(e=>+e.dataset.i===cur[cur.length-1]); if(!a)return;
+          const fr=flt.getBoundingClientRect(), ra=a.getBoundingClientRect(), rb=b.getBoundingClientRect();
+          fing.style.opacity=1; fing.style.left=((ra.left+rb.right)/2-fr.left-16)+'px'; fing.style.top=(rb.bottom-fr.top-6)+'px';
+        };
+        const paint=()=>{
+          const done=new Set(steps.slice(0,pos).flat()), cur=new Set(steps[pos]||[]);
+          els.forEach(e=>{const i=+e.dataset.i;e.className='fl '+(cur.has(i)?'now':done.has(i)?'done':'next')});
+          if(pos>0){
+            const last=steps[pos-1][steps[pos-1].length-1], sy=U[last].syl, nxt=steps[pos]?U[steps[pos][0]]:null;
+            // dokončená slabika → modrá (spoj hlásky)
+            if(mode==='let'&&(!nxt||nxt.syl!==sy))els.filter(e=>e.dataset.s===String(sy)).forEach(e=>e.classList.add('blend'));
+            // dokončené slovo → zelené a appka ho povie (ak je toho viac slov)
+            if(!nxt||nxt.w!==U[last].w){
+              els.filter(e=>U[+e.dataset.i].w===U[last].w).forEach(e=>{e.classList.remove('blend');e.classList.add('wdone')});
+              if(nxt&&sayW)say(word(U[last].w),0.85);
+            }
+          }
+          els.forEach(e=>{if(U[+e.dataset.i].pu&&pos>0&&done.has(+e.dataset.i-1))e.className='fl done'});
+          moveFinger();
+          if(pos>=steps.length){
+            clearInterval(timer);els.forEach(e=>e.className='fl fin');
+            flt.classList.add('finished'); box.querySelector('.flctl').style.display='none'; $('flEnd').style.display='block';
+            $('flHint').textContent='Teraz to prečítaj celé naraz! 🙂'; say(text,0.85);
+          }
+        };
+        const step=()=>{if(pos<steps.length){pos++;paint()}};
+        const startAuto=ms=>{clearInterval(timer);if(ms)timer=setInterval(step,ms)};
+        $('flNext').onclick=step; flt.onclick=e=>{if(!e.target.closest('.chip'))step()};
+        $('flErr').onclick=()=>{
+          const cur=steps[pos]; if(!cur)return; mistakes++;
+          const keys=[...new Set(cur.map(i=>'L:'+U[i].t.toLocaleUpperCase('sk')))]; if(mode==='syl')keys.push('S:'+cur.map(i=>U[i].t).join('').toLocaleUpperCase('sk'));
+          track(keys,false);
+          cur.forEach(i=>{const e=els.find(x=>+x.dataset.i===i);e.classList.remove('err');void e.offsetWidth;e.classList.add('err')});
+          owl('Nevadí, skús ešte raz 💪');
+        };
+        main.querySelectorAll('[data-len]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();store.set('fl_len',b.dataset.len);clearInterval(timer);flGame()});
+        $('flL').onclick=()=>{store.set('fl_mode','let');clearInterval(timer);flGame()};
+        $('flS').onclick=()=>{store.set('fl_mode','syl');clearInterval(timer);flGame()};
+        $('flA').onclick=()=>{const c=store.get('fl_speed',0), nx=c?0:(mode==='let'?1100:1500);store.set('fl_speed',nx);$('flA').textContent=nx?'⏸ auto':'▶ auto';$('flA').classList.toggle('on',!!nx);startAuto(nx)};
+        $('flW').onclick=()=>{const v=!store.get('fl_say',true);store.set('fl_say',v);$('flW').textContent=v?'🔊 slovo':'🔇 slovo';$('flW').classList.toggle('on',v)};
+        $('flAgain').onclick=()=>{pos=0;flt.classList.remove('finished');box.querySelector('.flctl').style.display='';$('flEnd').style.display='none';paint();startAuto(store.get('fl_speed',0))};
+        $('flOk').onclick=()=>{clearInterval(timer);
+          const ok=mistakes===0; track(steps.flat().map(i=>'L:'+U[i].t.toLocaleUpperCase('sk')).filter((v,i,a)=>a.indexOf(v)===i),true);
+          const c=store.get('fl_ok',0)+1; store.set('fl_ok',c);
+          finish(true);
+          if(mode==='let'&&c%6===0)setTimeout(()=>owl('Ide ti to! Skús prepnúť na „po slabikách“ 🙂'),1900);
+          if(mode==='syl'&&c%8===0&&store.get('fl_len','word')==='word')setTimeout(()=>owl('Super! Skús už aj vety 📖'),1900);
+        };
+        $('flSkip').onclick=()=>{clearInterval(timer);finish(false)};
+        window.addEventListener('resize',moveFinger,{once:true});
+        paint(); startAuto(speed);
+      }};
+  };
+}
+function flGame(){setTitle('🔦 Svetielko');runQuiz({n:8,again:flGame,make:flMaker()})}
+
+/* =====================================================================
+   PÍŠ PRSTOM – dieťa obťahuje písmenko prstom, appka skontroluje,
+   či obťahovalo celé písmenko a nešlo mimo neho
+   ===================================================================== */
+const TR_KINDS=[['letter','Písmenko'],['syl','Slabika'],['word','Slovo']];
+const TR_STYLES=[['up','VEĽKÉ'],['lo','malé'],['cur','✍️ písané']];
+function traceTarget(kind){
+  const C=S.known.filter(l=>!isVowel(l)&&l.length===1), V=S.known.filter(isVowel);
+  if(kind==='syl'&&C.length&&V.length)return rand(C)+rand(V);
+  if(kind==='word'){const w=getWords().filter(x=>canRead(x.w)&&x.w.replace(/-/g,'').length<=5);if(w.length)return rand(w).w.replace(/-/g,'')}
+  return rand(S.known.length?S.known:['A']);
+}
+function traceMaker(){
+  let last='';
+  return()=>{
+    const kind=store.get('tr_kind','letter'), style=store.get('tr_style','up');
+    let t,k=0; do{t=traceTarget(kind)}while(t===last&&++k<10); last=t;
+    const txt=style==='up'?t.toLocaleUpperCase('sk'):style==='lo'?t.toLocaleLowerCase('sk'):(kind==='letter'?t.charAt(0)+t.slice(1).toLocaleLowerCase('sk')+' '+t.toLocaleLowerCase('sk'):t.toLocaleLowerCase('sk'));
+    const font=style==='cur'?'"Playwrite SK", cursive':'"Andika", system-ui, sans-serif', weight=style==='cur'?'400':'700';
+    return{label:'✍️ Píš prstom',prompt:`
+      <div class="chips trch">${TR_KINDS.map(([k2,l])=>`<button class="chip ${k2===kind?'on':''}" data-trk="${k2}">${l}</button>`).join('')}</div>
+      <div class="chips trch">${TR_STYLES.map(([k2,l])=>`<button class="chip ${k2===style?'on':''}" data-trs="${k2}">${l}</button>`).join('')}</div>
+      <div class="trwrap"><canvas id="trc"></canvas></div>
+      <div class="muted" id="trMsg">Obťahuj sivé ${kind==='letter'?'písmenko':kind==='syl'?'slabiku':'slovo'} prstom 👆</div>`,
+      ok:'',track:['T:pisanie'],
+      custom:(box,finish)=>{
+        box.innerHTML=`<div style="display:flex;gap:8px"><button class="big-btn alt" id="trClr" style="flex:1;margin-top:0">🧽 Zmazať</button><button class="big-btn" id="trOk" style="flex:2;margin-top:0">✅ Hotovo</button></div>
+          <button class="toggle" id="trSkip" style="display:block;margin:10px auto 0">➡ Preskočiť</button>`;
+        main.querySelectorAll('[data-trk]').forEach(b=>b.onclick=()=>{store.set('tr_kind',b.dataset.trk);traceGame()});
+        main.querySelectorAll('[data-trs]').forEach(b=>b.onclick=()=>{store.set('tr_style',b.dataset.trs);traceGame()});
+        const cv=$('trc'), wrap=cv.parentElement, dpr=window.devicePixelRatio||1;
+        const W=Math.min(wrap.clientWidth||340,520), H=Math.round(W*(kind==='letter'?.8:.55));
+        cv.style.width=W+'px';cv.style.height=H+'px';cv.width=W*dpr;cv.height=H*dpr;
+        const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);
+        let strokes=[], cur=null, mistakes=0, done=false, fit=null;
+        // veľkosť písma tak, aby sa text zmestil
+        const fitText=(c,w,h)=>{let fs=h*.9;c.font=`${weight} ${fs}px ${font}`;let m=c.measureText(txt);
+          let th=(m.actualBoundingBoxAscent+m.actualBoundingBoxDescent)||fs*.75, tw=m.width;
+          const sc=Math.min(w*.84/tw,h*.72/th);fs*=sc;c.font=`${weight} ${fs}px ${font}`;m=c.measureText(txt);
+          const asc=m.actualBoundingBoxAscent||fs*.7, desc=m.actualBoundingBoxDescent||0;
+          return{fs,x:(w-m.width)/2,y:(h-(asc+desc))/2+asc}};
+        const drawGuide=col=>{
+          ctx.clearRect(0,0,W,H);
+          ctx.save();ctx.strokeStyle='#bfdbfe';ctx.lineWidth=1.5;ctx.setLineDash([6,6]);
+          [fit.y,fit.y-fit.fs*.5].forEach(y=>{ctx.beginPath();ctx.moveTo(8,y);ctx.lineTo(W-8,y);ctx.stroke()});ctx.restore();
+          ctx.save();ctx.font=`${weight} ${fit.fs}px ${font}`;ctx.fillStyle=col||'#e5e7eb';ctx.fillText(txt,fit.x,fit.y);
+          if(style!=='cur'){ctx.setLineDash([4,6]);ctx.lineWidth=2;ctx.strokeStyle='#9ca3af';ctx.strokeText(txt,fit.x,fit.y)}
+          ctx.restore();
+          ctx.save();ctx.strokeStyle='#2563eb';ctx.lineWidth=Math.max(10,fit.fs*(style==='cur'?.06:.09));ctx.lineCap='round';ctx.lineJoin='round';
+          strokes.forEach(s=>{ctx.beginPath();s.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));if(s.length===1)ctx.lineTo(s[0][0]+.1,s[0][1]);ctx.stroke()});ctx.restore();
+        };
+        const pt=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left),(e.clientY-r.top)]};
+        cv.onpointerdown=e=>{if(done)return;e.preventDefault();cv.setPointerCapture(e.pointerId);cur=[pt(e)];strokes.push(cur);drawGuide()};
+        cv.onpointermove=e=>{if(!cur)return;e.preventDefault();cur.push(pt(e));drawGuide()};
+        cv.onpointerup=cv.onpointercancel=()=>{cur=null};
+        // vyhodnotenie na malej mriežke
+        const check=()=>{
+          if(!strokes.length){$('trMsg').textContent='Najprv obťahuj písmenko prstom 👆';return}
+          const k=120/W, w=120, h=Math.round(H*k);
+          const mk=()=>{const c=document.createElement('canvas');c.width=w;c.height=h;return c.getContext('2d')};
+          const g=mk(), tol=mk(), u=mk(), fs=fit.fs*k;
+          g.font=`${weight} ${fs}px ${font}`;g.fillText(txt,fit.x*k,fit.y*k);
+          tol.font=g.font;tol.fillText(txt,fit.x*k,fit.y*k);tol.lineWidth=fs*(style==='cur'?.28:.22);tol.lineJoin='round';tol.strokeText(txt,fit.x*k,fit.y*k);
+          u.lineWidth=Math.max(3,fs*(style==='cur'?.16:.2));u.lineCap='round';u.lineJoin='round';
+          strokes.forEach(s=>{u.beginPath();s.forEach((p,i)=>i?u.lineTo(p[0]*k,p[1]*k):u.moveTo(p[0]*k,p[1]*k));if(s.length===1)u.lineTo(s[0][0]*k+.1,s[0][1]*k);u.stroke()});
+          const A=c=>c.getImageData(0,0,w,h).data, ga=A(g), ta=A(tol), ua=A(u);
+          let gN=0,gCov=0,uN=0,uIn=0;
+          for(let i=3;i<ga.length;i+=4){if(ga[i]>100){gN++;if(ua[i]>60)gCov++} if(ua[i]>100){uN++;if(ta[i]>40)uIn++}}
+          const cov=gN?gCov/gN:0, acc=uN?uIn/uN:0;
+          const pass=cov>=.6&&acc>=.72;
+          if(pass){
+            done=true; drawGuide('#bbf7d0');
+            const stars=cov>.85&&acc>.88?3:cov>.72&&acc>.8?2:1;
+            $('trMsg').innerHTML=`${'⭐'.repeat(stars)} ${stars===3?'Perfektné!':stars===2?'Výborne!':'Dobre!'}`;
+            setTimeout(()=>finish(mistakes===0),700);
+          }else{
+            mistakes++; drawGuide('#fecaca'); setTimeout(()=>drawGuide(),900);
+            $('trMsg').textContent=acc<.72?'Skús ísť presnejšie po sivom písmenku 🙂':'Ešte kúsok – obťahuj celé písmenko 👆';
+            owl('Skús to ešte raz 💪');
+          }
+        };
+        $('trClr').onclick=()=>{strokes=[];drawGuide();$('trMsg').textContent='Obťahuj sivé písmenko prstom 👆'};
+        $('trOk').onclick=check;
+        $('trSkip').onclick=()=>{if(!done){done=true;finish(false)}};
+        Promise.all([document.fonts.load(`${weight} 80px ${font}`)]).catch(()=>{}).then(()=>{fit=fitText(ctx,W,H);drawGuide()});
+      }};
+  };
+}
+function traceGame(){setTitle('✍️ Píš prstom');runQuiz({n:6,again:traceGame,make:traceMaker()})}
+
+/* =====================================================================
+   RODIČOVSKÝ ČASOVAČ – denný limit hrania
+   ===================================================================== */
+const LIMITS=[0,10,15,20,30,45];
+let tMem={d:'',sec:0}, tWarned=false, tLastSave=0;
+function tLoad(){const t=store.get('tday',{d:'',sec:0,extra:0});if(t.d!==today())return{d:today(),sec:0,extra:0};return t}
+function playedSec(){const t=tLoad();return Math.max(t.sec,tMem.d===today()?tMem.sec:0)}
+function tSave(){const t=tLoad();t.sec=Math.max(t.sec,tMem.sec);store.set('tday',t);tLastSave=Date.now()}
+function limitSec(){const l=store.get('limit',0);if(!l)return 0;return(l+tLoad().extra)*60}
+function timerTick(){
+  if(document.visibilityState!=='visible')return;
+  if(tMem.d!==today())tMem={d:today(),sec:tLoad().sec};
+  if($('stopOv'))return;
+  tMem.sec+=10;
+  if(Date.now()-tLastSave>60000)tSave();
+  const lim=limitSec(); if(!lim)return;
+  if(!tWarned&&lim-tMem.sec<=120&&lim-tMem.sec>0){tWarned=true;owl('Ešte 2 minútky a ideme si oddýchnuť 🙂');say('Ešte dve minútky a ideme si oddýchnuť.')}
+  if(tMem.sec>=lim)showStop();
+}
+function showStop(){
+  if($('stopOv'))return; tSave(); stopSpeak();
+  const min=Math.round(playedSec()/60), a=ri(3,9), b=ri(4,9);
+  const ov=document.createElement('div');ov.id='stopOv';
+  ov.innerHTML=`<div class="stopc">
+      <div style="font-size:90px">🦉🌳</div>
+      <h2>Dnes stačilo${nm()}!</h2>
+      <p>${g('Učil','Učila')} si sa ${min} minút. ${g('Si šikovný','Si šikovná')}! 🌟<br>Poď sa hrať von alebo si prečítaj knižku. Zajtra pokračujeme!</p>
+      <details class="pgate"><summary>Pre rodiča</summary>
+        <div class="muted">Koľko je ${a} × ${b}?</div>
+        <input type="number" inputmode="numeric" id="pgIn" style="width:120px;font-size:22px;padding:6px;border-radius:10px;border:2px solid #e6d9c2">
+        <button class="toggle on" id="pgOk">OK</button>
+        <div id="pgBtns" style="display:none;margin-top:10px;gap:8px;flex-wrap:wrap;justify-content:center">
+          <button class="toggle on" data-ext="5">+5 minút</button><button class="toggle on" data-ext="15">+15 minút</button><button class="toggle" data-ext="999">Dnes bez limitu</button>
+        </div></details>
+    </div>`;
+  document.body.appendChild(ov);
+  say((S.name?S.name+', ':'')+'dnes stačilo! Poď sa hrať von. Zajtra pokračujeme.');
+  $('pgOk').onclick=()=>{if(+$('pgIn').value===a*b){$('pgBtns').style.display='flex'}else{$('pgIn').value='';$('pgIn').placeholder='skúste znova'}};
+  ov.querySelectorAll('[data-ext]').forEach(x=>x.onclick=()=>{const t=tLoad();t.sec=Math.max(t.sec,tMem.sec);t.extra=(t.extra||0)+(+x.dataset.ext);store.set('tday',t);tWarned=false;ov.remove()});
+}
+setInterval(timerTick,10000);
+setTimeout(()=>{tMem={d:today(),sec:tLoad().sec};const l=limitSec();if(l&&tMem.sec>=l)showStop()},1500);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')tSave()});
+
+/* ---------- Zásady ochrany súkromia ---------- */
+const PRIVACY_HTML=`<h1>Zásady ochrany súkromia – Zvedavko</h1>
+<p class="upd">Platné od 10. 11. 2026</p>
+
+<h2>Stručne</h2>
+<ul>
+<li>Zvedavko <b>nezbiera ani neodosiela</b> žiadne osobné údaje o deťoch ani o rodičoch.</li>
+<li>Všetko, čo do appky zadáte (meno dieťaťa, výsledky, nastavenia), zostáva <b>len vo vašom zariadení</b>.</li>
+<li>Appka nemá <b>reklamy</b>, nepoužíva <b>cookies</b>, <b>analytické ani sledovacie nástroje</b> a nevyžaduje registráciu.</li>
+</ul>
+
+<h2>1. Kto appku prevádzkuje</h2>
+<p>Prevádzkovateľ: <b>[Meno a priezvisko alebo názov firmy]</b><br>Kontakt: <b>[e-mail]</b></p>
+
+<h2>2. Aké údaje appka používa a kde sú uložené</h2>
+<p>Aby appka fungovala, ukladá v pamäti prehliadača alebo zariadenia (tzv. lokálne úložisko) tieto údaje:</p>
+<ul>
+<li>krstné meno alebo prezývku dieťaťa a údaj chlapec/dievča – <b>nepovinné</b>, slúžia len na oslovenie a správny tvar pochvaly („Získal si / Získala si“),</li>
+<li>písmenká, ktoré dieťa pozná, a nastavenia appky,</li>
+<li>postup v hrách: hviezdičky, odznaky, úspešnosť pri úlohách, čas hrania za deň,</li>
+<li>slová a vety, ktoré rodič sám zadá (napr. zo šlabikára).</li>
+</ul>
+<p>Tieto údaje sa <b>neodosielajú</b> prevádzkovateľovi ani nikomu inému. Prevádzkovateľ k nim nemá prístup.</p>
+
+<h2>3. Prenos do iného zariadenia</h2>
+<p>Ak v časti „Deti a prenos“ vytvoríte kód, vznikne priamo vo vašom zariadení. Kód obsahuje postup a nastavenia dieťaťa. Kam ho skopírujete, rozhodujete vy – prevádzkovateľ ho nedostáva. Kód nikomu neposielajte, ak nechcete, aby videl postup vášho dieťaťa.</p>
+
+<h2>4. Hlas, karty na tlač a sťahovanie</h2>
+<ul>
+<li>Čítanie nahlas zabezpečuje hlas zabudovaný vo vašom telefóne alebo počítači (funkcia operačného systému). Appka neposiela text prevádzkovateľovi.</li>
+<li>Karty na tlač a diplom sa vytvárajú priamo vo vašom zariadení.</li>
+<li>Pri písaní prstom sa ťahy vyhodnocujú len v zariadení a neukladajú sa.</li>
+</ul>
+
+<h2>5. Služby tretích strán</h2>
+<ul>
+<li><b>Hosting webovej verzie:</b> webová verzia je umiestnená na službe GitHub Pages (GitHub, Inc.). Pri otvorení stránky môže GitHub ako poskytovateľ hostingu technicky spracovať IP adresu a údaje o prehliadači podľa svojich zásad ochrany súkromia.</li>
+<li><b>Písma:</b> webová verzia načítava písma (Andika, Playwrite SK) zo služby Google Fonts. Pri ich načítaní sa Googlu prenáša IP adresa zariadenia.</li>
+<li><b>Obchody s aplikáciami:</b> ak appku stiahnete z App Store alebo Google Play, nákup a sťahovanie spracúva Apple alebo Google podľa svojich zásad.</li>
+</ul>
+
+<h2>6. Deti</h2>
+<p>Zvedavko je určený deťom od približne 5 do 8 rokov a mal by sa používať s rodičom. Appka od detí nezbiera žiadne osobné údaje, nemá chat ani kontakt s inými ľuďmi. Nastavenia pre rodičov sú oddelené od hier.</p>
+
+<h2>7. Ako údaje vymazať</h2>
+<ul>
+<li>V appke: <b>Deti a prenos → 🗑</b> pri mene dieťaťa vymaže všetky jeho údaje.</li>
+<li>V Prehľade pokroku sa dajú vynulovať štatistiky.</li>
+<li>Úplne: vymazaním údajov prehliadača pre túto stránku alebo odinštalovaním appky.</li>
+</ul>
+
+<h2>8. Vaše práva</h2>
+<p>Podľa nariadenia GDPR máte právo na prístup k údajom, ich opravu a vymazanie. Keďže prevádzkovateľ žiadne vaše údaje neuchováva, tieto práva si uplatníte priamo vo svojom zariadení (pozri bod 7). S otázkami sa môžete obrátiť na kontakt v bode 1. Máte tiež právo podať sťažnosť na Úrad na ochranu osobných údajov Slovenskej republiky.</p>
+
+<h2>9. Zmeny</h2>
+<p>Ak sa appka zmení tak, že by začala spracúvať iné údaje, tieto zásady aktualizujeme a zmenu uvedieme v appke.</p>
+`;
+function privacyView(){setTitle('🔒 Súkromie');main.innerHTML=`<div class="panel privacy" style="margin-top:0">${PRIVACY_HTML}</div>`;window.scrollTo(0,0)}
+
 /* ---------- Uvítanie pre nových rodičov ---------- */
 function welcome(){
   setTitle('Vitajte!');
@@ -1527,7 +1968,7 @@ function welcome(){
        <div class="muted" style="margin-top:8px">Vybraté: ${sel.length?sel.join(' '):'zatiaľ nič'}</div>
      </div>
      <button class="big-btn" id="wGo" ${sel.length?'':'disabled'}>🚀 Začať hrať</button>
-     <div class="muted" style="text-align:center;margin-top:8px">Všetko sa ukladá len v tomto zariadení.</div>`;
+     <div class="muted" style="text-align:center;margin-top:8px">Všetko sa ukladá len v tomto zariadení. <a href="#" id="wPriv" style="color:inherit">Zásady ochrany súkromia</a></div>`;
     const keepName=()=>{S.name=$('wName').value.trim();save('name')};
     $('wBoy').onclick=()=>{keepName();S.girl=false;save('girl');render()};
     $('wGirl').onclick=()=>{keepName();S.girl=true;save('girl');render()};
@@ -1536,6 +1977,7 @@ function welcome(){
     $('wAll').onclick=()=>{keepName();sel=ALL_KEYS.slice();render()};
     $('wNone').onclick=()=>{keepName();sel=[];render()};
 
+    $('wPriv').onclick=e=>{e.preventDefault();privacyView()};
     $('wGo').onclick=()=>{keepName();S.known=sel;save('known');store.set('onboarded',true);window.scrollTo(0,0);home();say('Ahoj'+(S.name?' '+S.name:'')+'! Ideme sa hrať.')};
   };
   render();
@@ -1726,7 +2168,32 @@ function drawMaze(ctx){
   ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.font=`400 34px ${FONT}`;ctx.fillStyle='#555';ctx.fillText('Pomôž myške nájsť cestu k syru.',80,280);
   ctx.restore();
 }
+function drawShapesSheet(ctx){
+  sheetBase(ctx,'Vymaľuj a spočítaj tvary');
+  const COL={kruh:['žltá','#facc15'],štvorec:['modrá','#3b82f6'],obdĺžnik:['zelená','#22c55e'],trojuholník:['červená','#ef4444']};
+  const cnt={kruh:0,štvorec:0,obdĺžnik:0,trojuholník:0};
+  ctx.save();ctx.strokeStyle='#222';ctx.lineWidth=6;ctx.lineJoin='round';
+  const cols=4, rows=5, cw=250, chh=170, x0=(CW-cols*cw)/2, y0=310;
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    if(Math.random()<.12)continue;
+    const t=rand(SH2); cnt[t]++;
+    const cx=x0+c*cw+cw/2+ri(-20,20), cy=y0+r*chh+chh/2+ri(-12,12), sz=ri(90,130), rot=rand([0,0,15,-15,30])*Math.PI/180;
+    ctx.save();ctx.translate(cx,cy);ctx.rotate(rot);ctx.beginPath();
+    if(t==='kruh')ctx.arc(0,0,sz/2,0,7);
+    else if(t==='štvorec')ctx.rect(-sz/2,-sz/2,sz,sz);
+    else if(t==='obdĺžnik')ctx.rect(-sz*.75,-sz*.36,sz*1.5,sz*.72);
+    else{ctx.moveTo(0,-sz*.45);ctx.lineTo(sz*.55,sz*.45);ctx.lineTo(-sz*.55,sz*.45);ctx.closePath()}
+    ctx.stroke();ctx.restore();
+  }
+  ctx.restore();
+  const ly=y0+rows*chh+60; ctx.fillStyle='#2B2D42';ctx.font=`700 36px ${FONT}`;ctx.fillText('Vymaľuj:',80,ly);
+  SH2.forEach((t,i)=>{const x=80+(i%2)*540, y=ly+60+Math.floor(i/2)*60;ctx.fillStyle=COL[t][1];ctx.fillRect(x,y-34,44,44);ctx.strokeStyle='#222';ctx.lineWidth=2;ctx.strokeRect(x,y-34,44,44);
+    ctx.fillStyle='#2B2D42';ctx.font=`400 34px ${FONT}`;ctx.fillText(`${t} = ${COL[t][0]}`,x+60,y)});
+  const qy=ly+200; ctx.font=`700 36px ${FONT}`;ctx.fillText('Spočítaj:',80,qy);
+  SH2.forEach((t,i)=>{const x=80+(i%2)*540, y=qy+66+Math.floor(i/2)*84;ctx.font=`400 34px ${FONT}`;ctx.fillText(`${cap(SH_GEN[t])}:`,x,y);ctx.lineWidth=4;ctx.strokeRect(x+290,y-50,90,70)});
+}
 function drawColor(ctx,opt){
+  if(opt==='shapes')return drawShapesSheet(ctx);
   if(opt==='mandala')return drawMandala(ctx);
   if(opt==='cbn')return drawCBN(ctx);
   if(opt==='dots')return drawDots(ctx);
@@ -1800,7 +2267,7 @@ async function cardsView(kind,opt){
   main.innerHTML=`
     ${kind==='write'?(()=>{const cur=opt.startsWith('c'),m=cur?opt.slice(1):opt;return `<div class="tabs"><button class="tab ${m==='letters'?'on':''}" data-o="${cur?'c':''}letters">Písmenká</button><button class="tab ${m==='words'?'on':''}" data-o="${cur?'c':''}words">Slová</button></div>
       <div class="tabs"><button class="tab ${!cur?'on':''}" data-o="${m}">Tlačené</button><button class="tab ${cur?'on':''}" data-o="c${m}">✍️ Písané</button></div>`})():''}
-    ${kind==='color'?`<div class="chips" style="margin-bottom:10px">${[['pics','🖍️ Obrázky'],['mandala','🌸 Mandala'],['cbn','🔢 Vypočítaj a vymaľuj'],['dots','✏️ Spoj bodky'],['maze','🐭 Bludisko']].map(([k,l])=>`<button class="chip ${opt===k?'on':''}" data-o="${k}" style="min-width:0;padding:8px 12px;font-size:15px">${l}</button>`).join('')}</div>
+    ${kind==='color'?`<div class="chips" style="margin-bottom:10px">${[['pics','🖍️ Obrázky'],['mandala','🌸 Mandala'],['cbn','🔢 Vypočítaj a vymaľuj'],['dots','✏️ Spoj bodky'],['maze','🐭 Bludisko'],['shapes','🔺 Tvary']].map(([k,l])=>`<button class="chip ${opt===k?'on':''}" data-o="${k}" style="min-width:0;padding:8px 12px;font-size:15px">${l}</button>`).join('')}</div>
       ${opt==='maze'?`<div class="tabs"><button class="tab ${!mazeHard?'on':''}" id="mzE">Ľahké</button><button class="tab ${mazeHard?'on':''}" id="mzH">Ťažké</button></div>`:''}
       ${opt==='cbn'?'<div class="muted" style="margin-bottom:8px">Príklady sú podľa rozsahu čísel nastaveného v Počítaní.</div>':''}`:''}
     <div id="sheetBox" class="muted" style="text-align:center;padding:40px">Pripravujem kartu…</div>
@@ -1815,7 +2282,7 @@ async function cardsView(kind,opt){
   const url=cv.toDataURL('image/png');
   $('sheetBox').innerHTML=`<img class="sheet" src="${url}" alt="Karta na tlač">`;$('sheetBox').style.padding='0';
   $('kNew').onclick=()=>{if(kind==='color'){if(opt==='pics')colorIdx++;if(opt==='cbn')cbnIdx++;if(opt==='dots')dotIdx++}if(kind==='diploma')dipCol++;cardsView(kind,opt)};
-  const names={diploma:'diplom',write:(opt.endsWith('words')?'obtahuj-slova':'obtahuj-pismenka')+(opt.startsWith('c')?'-pisane':''),color:{pics:'vymaluj',mandala:'mandala',cbn:'vypocitaj-a-vymaluj',dots:'spoj-bodky',maze:'bludisko'}[opt]||'vymaluj',math:'pocitaj'};
+  const names={diploma:'diplom',write:(opt.endsWith('words')?'obtahuj-slova':'obtahuj-pismenka')+(opt.startsWith('c')?'-pisane':''),color:{pics:'vymaluj',mandala:'mandala',cbn:'vypocitaj-a-vymaluj',dots:'spoj-bodky',maze:'bludisko',shapes:'tvary'}[opt]||'vymaluj',math:'pocitaj'};
   $('kDl').onclick=()=>{
     if(!dlApi){ // samostatný web (napr. GitHub Pages): bežné stiahnutie
       cv.toBlob(b=>{try{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=names[kind]+'.png';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000)}catch(e){}

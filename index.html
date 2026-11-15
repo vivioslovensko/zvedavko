@@ -165,6 +165,15 @@
   .owlbox .bub{background:#fff;border-radius:18px 18px 18px 4px;padding:10px 14px;font-size:16px;box-shadow:0 3px 0 #efe3cd;flex:1}
 
 
+
+  /* --- Inštalácia na plochu --- */
+  .ins-bar{display:flex;gap:6px;margin-bottom:10px}
+  .ins-bar #instGo{flex:1;background:linear-gradient(135deg,#0a84ff,#5e5ce6);color:#fff;border-radius:16px;padding:10px 14px;text-align:left;font-size:17px;box-shadow:0 4px 0 rgba(0,0,0,.12)}
+  .ins-bar #instGo small{display:block;font-size:13px;opacity:.9;font-weight:600}
+  .ins-bar #instX{background:#eee;border-radius:14px;width:44px;font-size:18px}
+  .ins-steps{line-height:1.6;font-size:18px;padding-left:24px;margin:14px 0}.ins-steps li{margin-bottom:12px}
+  .ins-ico{display:inline-flex;vertical-align:middle;background:#f2f2f7;border-radius:8px;padding:3px;margin:0 2px}
+  .ins-safari{background:#eef4ff;border-radius:14px;padding:10px 12px;margin-top:10px;font-size:15px;line-height:1.5}.ins-safari ol{padding-left:20px;margin:6px 0 0}
   /* --- Vesmírna sovička --- */
   .sg-tile{background:linear-gradient(135deg,#1b1f4b,#5a2a82);color:#fff}.sg-tile span span,.sg-tile div span{color:#d6c8ff}
   .sg-intro .sg-hero{display:flex;gap:12px;align-items:center;background:linear-gradient(135deg,#1b1f4b,#5a2a82);color:#fff;border-radius:20px;padding:12px 14px;margin-bottom:12px}
@@ -332,40 +341,48 @@ const LS={
 };
 function touched(){LS.set('citanie__saved',String(Date.now()),true);cloudSave()}
 let cloudRef=null, cloudBusy=false, cloudAgain=false, cloudTimer=null, cloudState='local';
-const NO_SYNC=['citanie_voice','citanie_vok','citanie_vbad','citanie__saved','citanie__t'];
+const NO_SYNC=['citanie_voice','citanie_vok','citanie_vbad','citanie__saved','citanie__t','citanie_cur','citanie__synced','citanie__insthide'];
 function snapshotLocal(){const keys={};LS.keys().forEach(k=>{if(!NO_SYNC.includes(k)){const v=LS.get(k);if(v!==null)keys[k]=v}});return{v:1,savedAt:+(LS.get('citanie__saved')||0),keys}}
-function cloudSave(now){if(!cloudRef)return;clearTimeout(cloudTimer);cloudTimer=setTimeout(cloudWrite,now?0:2500)}
+function cloudSave(now){if(!cloudRef)return;clearTimeout(cloudTimer);cloudTimer=setTimeout(cloudWrite,now?0:(cloudRef.slowSave?45000:2500))}
 async function cloudWrite(){
   if(!cloudRef)return; if(cloudBusy){cloudAgain=true;return}
   cloudBusy=true;
-  try{await cloudRef.set(snapshotLocal());cloudState='cloud'}
+  try{const snap=snapshotLocal();await cloudRef.set(snap);LS.set('citanie__synced',String(snap.savedAt),true);cloudState='cloud'}
   catch(e){if(e&&(e.code==='invalid_argument'||e.code==='revoked'||e.code==='not_granted'||e.code==='quota_exceeded')){cloudRef=null;cloudState='local'}}
   cloudBusy=false; updCloudNote();
   if(cloudAgain){cloudAgain=false;cloudWrite()}
 }
-async function initCloud(){
+async function initCloud(preferRemote){
   try{
-    if(!(window.claude&&typeof window.claude.use==='function'))return;
-    const[db,user]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);
-    if(!db||!user)return;
-    const uid=await user.id(); if(!uid)return;
-    const ref=db.doc('data/users/'+uid+'/stav');
+    if(window.claude&&typeof window.claude.use==='function'){
+      const[db,user]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);
+      const uid=db&&user?await user.id():null;
+      if(uid)return cloudConnect(db.doc('data/users/'+uid+'/stav'));
+    }
+    if(typeof codeCloud==='function'){const r=codeCloud();if(r)return cloudConnect(r,preferRemote)}
+  }catch(e){}
+}
+async function cloudConnect(ref,preferRemote){
+  try{
     const snap=await Promise.race([ref.get(),new Promise((_,rej)=>setTimeout(()=>rej({code:'timeout'}),10000))]);
     const local=snapshotLocal(), remote=snap.exists?snap.data():null;
     cloudRef=ref;
-    if(remote&&remote.keys&&(remote.savedAt||0)>local.savedAt){
+    // „synced“ = verzia zo servera, s ktorou bolo toto zariadenie naposledy zosúladené
+    const synced=+(LS.get('citanie__synced')||0);
+    const remoteNewer=remote&&remote.keys&&(preferRemote||(remote.savedAt||0)>(synced||local.savedAt));
+    if(remoteNewer){
       Object.entries(remote.keys).forEach(([k,v])=>LS.set(k,v,true));
-      LS.set('citanie__saved',String(remote.savedAt),true);
+      LS.set('citanie__saved',String(remote.savedAt),true);LS.set('citanie__synced',String(remote.savedAt),true);
       loadS();genCache.key='';applyFont();updStars();
       if(!main.querySelector('.prog')&&!main.querySelector('.pex')){if(store.get('onboarded',false)||S.stars>0)home();else welcome()}
       cloudState='cloud';
-    }else if(!remote||local.savedAt>(remote.savedAt||0)){await cloudWrite()}
+    }else if(!remote||local.savedAt>(remote.savedAt||0)||local.savedAt>synced){await cloudWrite()}
     else cloudState='cloud';
     updCloudNote();
   }catch(e){}
 }
 function cloudNoteHTML(){return cloudState==='cloud'
-  ?'☁️ <b>Výsledky sa ukladajú do vášho účtu Claude.</b> Zostanú aj po zatvorení appky a uvidíte ich aj na inom zariadení, keď ste prihlásená.'
+  ?(cloudRef&&cloudRef.slowSave?'☁️ <b>Výsledky sa ukladajú aj na server cez váš kód.</b> Sú rovnaké na všetkých zariadeniach, kde ste kód zadali (napr. telefón a tablet).':'☁️ <b>Výsledky sa ukladajú do vášho účtu Claude.</b> Zostanú aj po zatvorení appky a uvidíte ich aj na inom zariadení, keď ste prihlásená.')
   :'📱 Výsledky sa ukladajú <b>v tomto zariadení a prehliadači</b>. Nepoužívajte súkromné (inkognito) okno a nemažte údaje prehliadača. Na prenos do iného zariadenia je kód v časti „Deti a prenos“.'}
 function updCloudNote(){document.querySelectorAll('.cloudNote').forEach(n=>n.innerHTML=cloudNoteHTML())}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')cloudSave(true)});
@@ -652,6 +669,21 @@ async function unlockPack(keyB64){
   PACKIDX=JSON.parse(new TextDecoder().decode(pt.subarray(4,4+n))); PACKBIN=pt.subarray(4+n);
   bufCache.forEach((v,k)=>{if(k.startsWith('p:'))bufCache.delete(k)});
 }
+async function licPost(path,extra){
+  if(!LIC_URL||LIC_URL.startsWith('__'))throw new Error('Server s kódmi ešte nie je nastavený.');
+  const ctl=new AbortController(), to=setTimeout(()=>ctl.abort(),12000);
+  try{
+    const r=await fetch(LIC_URL.replace(/\/$/,'')+path,{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({code:LIC&&LIC.code,device:devId(),...(extra||{})})});
+    const j=await r.json().catch(()=>({ok:false}));return {status:r.status,...j};
+  }finally{clearTimeout(to)}
+}
+// pokrok detí cez kód (rovnaký na zariadeniach s tým istým kódom)
+function codeCloud(){
+  if(DEMO||OPEN||!LIC||!LIC.code||LIC.sync===false||!LIC_URL||LIC_URL.startsWith('__'))return null;
+  return {slowSave:true,
+    get:async()=>{const r=await licPost('/sync/get');if(!r.ok)throw {code:'revoked'};return {exists:!!r.data,data:()=>r.data}},
+    set:async d=>{const r=await licPost('/sync/put',{data:d});if(!r.ok)throw {code:r.error==='toolarge'?'quota_exceeded':'revoked'}}};
+}
 async function licCall(path){
   if(!LIC_URL||LIC_URL.startsWith('__'))throw new Error('Server s kódmi ešte nie je nastavený.');
   const r=await fetch(LIC_URL.replace(/\/$/,'')+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:(LIC&&path==='/check')?LIC.code:licCall.code,device:devId()})});
@@ -715,14 +747,16 @@ function licenseView(msg){
         <li>nahratý hlas sovičky – prirodzený, správna výslovnosť</li></ul>
       <div class="muted" style="margin-bottom:10px">${BUY_HTML}</div>
       <div class="row"><input type="text" id="licIn" placeholder="ZV-XXXX-XXXX" autocapitalize="characters" autocomplete="off" style="font-size:20px;letter-spacing:1px;text-transform:uppercase"><button class="toggle on" id="licGo">Aktivovať</button></div>
+      <label style="display:flex;gap:10px;align-items:flex-start;margin-top:12px;font-size:15px"><input type="checkbox" id="licSync" checked style="width:22px;height:22px;flex:none;margin-top:2px"><span>☁️ Ukladať pokrok detí aj na server, aby bol rovnaký na všetkých zariadeniach s týmto kódom (napr. telefón a tablet).</span></label>
       <div id="licMsg" class="muted" style="min-height:22px;margin-top:8px"></div>`}
+    ${full&&LIC&&LIC.code?`<div class="panel" style="margin-top:12px"><div class="row"><span>☁️ Ukladať pokrok na server</span><button class="toggle ${LIC.sync!==false?'on':''}" id="licSyncT">${LIC.sync!==false?'Áno':'Nie'}</button></div><div class="cloudNote note">${cloudNoteHTML()}</div></div>`:''}
   </div>`;
   window.scrollTo(0,0);
-  if(full)return;
+  if(full){if($('licSyncT'))$('licSyncT').onclick=()=>{LIC.sync=LIC.sync===false;saveLic();if(LIC.sync)initCloud();else{cloudRef=null;cloudState='local'}licenseView()};return}
   $('licGo').onclick=async()=>{
     const c=$('licIn').value.trim(); if(!c)return;
     $('licGo').disabled=true; $('licMsg').textContent='Overujem kód…';
-    try{await activateCode(c);home();owl('Plná verzia je zapnutá! 🎉');say('Výborne!')}
+    try{await activateCode(c);LIC.sync=$('licSync').checked;saveLic();await initCloud(true);home();owl('Plná verzia je zapnutá! 🎉');say('Výborne!')}
     catch(e){$('licMsg').textContent='⚠️ '+e.message;$('licGo').disabled=false}
   };
 }
@@ -887,6 +921,57 @@ function voiceBoxHTML(){
 }
 
 /* ---------- Domov ---------- */
+/* ---------- Ikonka na ploche (inštalácia ako aplikácia) ---------- */
+let PWA=false, instEvt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();instEvt=e;updInstall()});
+window.addEventListener('appinstalled',()=>{instEvt=null;updInstall();owl('Zvedavko je na ploche! 🎉')});
+const isStandalone=()=>{try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}catch(e){return false}};
+const isIOS=()=>/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const canInstall=()=>PWA&&!isStandalone()&&(!!instEvt||isIOS()||/Android/.test(navigator.userAgent));
+function updInstall(){
+  const box=$('instBox'); if(!box)return;
+  box.hidden=!(canInstall()&&LS.get('citanie__insthide')!=='1');
+}
+async function doInstall(){
+  if(instEvt){try{instEvt.prompt();const c=await instEvt.userChoice;if(c&&c.outcome==='accepted'){instEvt=null;updInstall()}}catch(e){installView()}return}
+  installView();
+}
+function installView(){
+  setTitle('📲 Na plochu'); stopSpeak();
+  const ua=navigator.userAgent, ios=isIOS(), ipad=ios&&!/iPhone|iPod/.test(ua), inApp=/Instagram|FBAN|FBAV|FB_IAB|Messenger|LinkedInApp|TikTok|Snapchat|Line\//i.test(ua), safari=!/CriOS|FxiOS|EdgiOS|GSA\//.test(ua)&&!inApp;
+  const link=location.origin+location.pathname;
+  const shareIco=`<span class="ins-ico"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 3v12M7 8l5-5 5 5" stroke="#0a84ff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 11v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8" stroke="#0a84ff" stroke-width="2" fill="none" stroke-linecap="round"/></svg></span>`;
+  const plusIco=`<span class="ins-ico"><svg viewBox="0 0 24 24" width="22" height="22"><rect x="3" y="3" width="18" height="18" rx="5" stroke="#2b2d42" stroke-width="2" fill="none"/><path d="M12 8v8M8 12h8" stroke="#2b2d42" stroke-width="2" stroke-linecap="round"/></svg></span>`;
+  main.innerHTML=`<div class="panel" style="margin-top:0">
+    <div style="display:flex;align-items:center;gap:12px"><div style="width:64px;flex:none">${owlSVG(64)}</div>
+      <div><h3 style="margin:0">Zvedavko ako aplikácia</h3><div class="muted">Ikonka na ploche, otvára sa na celú obrazovku a funguje aj bez internetu.</div></div></div>
+    ${instEvt?`<button class="big-btn" id="insGo">📲 Nainštalovať Zvedavka</button>`
+    :ios?`<div class="note">⚠️ Ikonku na plochu dokáže pridať len <b>prehliadač Safari</b> – tlačidlá nižšie sú v lište Safari, nie vo Zvedavkovi.</div>
+      <div class="ins-safari">
+        <b>Ste v Safari?</b> Ak ste odkaz otvorili z Instagramu, Facebooku, Messengeru, e-mailu alebo z inej aplikácie, tlačidlo „Pridať na plochu“ tam nebude. Najprv:
+        <a class="big-btn" href="x-safari-${link}#pridat" style="display:block;text-align:center;text-decoration:none;color:inherit;font-size:19px;margin:8px 0">🧭 Otvoriť v Safari</a>
+        Ak sa nič nestane:
+        <ol><li>skopírujte odkaz: <button class="toggle on" id="insCopy" style="margin-top:4px">📋 Kopírovať odkaz</button></li>
+        <li>otvorte aplikáciu <b>Safari</b> 🧭, ťuknite do riadku s adresou, podržte prst a zvoľte <b>Vložiť a otvoriť</b>.</li></ol>
+      </div>
+      <h3 style="margin:16px 0 4px">V Safari potom:</h3>
+      <ol class="ins-steps">
+        <li>Ťuknite na <b>Zdieľať</b> ${shareIco} v lište Safari ${ipad?'(<b>hore vpravo</b>).':'(<b>dole</b>). Ak lištu nevidíte, ťuknite na spodok obrazovky alebo na <b>•••</b> a potom na <b>Zdieľať</b>.'}</li>
+        <li>Posuňte ponuku nahor a zvoľte <b>Pridať na plochu</b> ${plusIco} (ak tam nie je, ťuknite na <b>Upraviť akcie</b> alebo <b>Zobraziť viac</b>).</li>
+        <li>Ťuknite na <b>Pridať</b> vpravo hore.</li>
+      </ol>
+      <div class="muted">Hotovo – Zvedavka odteraz otvárajte ikonkou so sovičkou na ploche.</div>`
+    :`<ol class="ins-steps">
+        <li>Ťuknite na <b>⋮</b> (tri bodky) vpravo hore v prehliadači.</li>
+        <li>Zvoľte <b>Inštalovať aplikáciu</b> alebo <b>Pridať na plochu</b>.</li>
+        <li>Potvrďte <b>Inštalovať / Pridať</b>.</li></ol>`}
+    <button class="toggle" id="insLater" style="display:block;margin:14px auto 0">Teraz nie</button>
+  </div>`;
+  window.scrollTo(0,0);
+  if($('insGo'))$('insGo').onclick=doInstall;
+  if($('insCopy'))$('insCopy').onclick=async()=>{try{await navigator.clipboard.writeText(link);$('insCopy').textContent='✓ Skopírované'}catch(e){$('insCopy').outerHTML='<div class="mono" style="user-select:all;-webkit-user-select:all;background:#fff;border-radius:8px;padding:6px;word-break:break-all">'+esc(link)+'</div>'}};
+  $('insLater').onclick=()=>{if(location.hash)history.replaceState(null,'',location.pathname+location.search.replace(/[?&](pridat|install)[^&]*/i,''));home()};
+}
 function home(){
   applyLimits();
   setTitle('🦉 Zvedavko');
@@ -900,6 +985,7 @@ function home(){
   main.innerHTML=`
    <div class="hello" style="display:flex;align-items:center;gap:8px"><span style="flex:1">Ahoj${nm()}! 👋</span><button class="toggle" id="hProf" style="min-width:0;font-size:15px">👥 Deti</button></div>
    ${DEMO?`<button class="note" id="demoBar" style="display:block;width:100%;text-align:center;font-weight:700;border:none;margin-bottom:10px;cursor:pointer">⭐ Ukážka · ťuknite a pozrite, čo je v plnej verzii</button>`:''}
+   <div class="ins-bar" id="instBox" hidden><button id="instGo">📲 <b>Pridať Zvedavka na plochu</b><small>ako aplikáciu – jedným ťuknutím</small></button><button id="instX" aria-label="Skryť">✕</button></div>
    <div class="owlbox"><div class="o" id="homeOwl">${owlSVG(72)}</div><div class="bub">${esc(owlHome())}</div></div>
    <button class="daily ${dailyDone()?'done':''}" id="hD"><span style="font-size:40px">${dailyDone()?'✅':'🔥'}</span>
      <div><b>Denná výzva</b><br><small>${dailyDone()?'Dnes splnená! Séria: '+streak()+' 🔥':'12 úloh · čítanie aj počítanie'+(streak()?' · séria '+streak()+' 🔥':'')}</small></div></button>
@@ -1016,6 +1102,7 @@ function home(){
   $('tSound').onclick=()=>{S.sound=!S.sound;save('sound');rer();if(S.sound)say('Zvuk je zapnutý.')};
   main.querySelectorAll('[data-lim]').forEach(b=>b.onclick=()=>{store.set('limit',+b.dataset.lim);tWarned=false;rer()});
   $('hPriv').onclick=privacyView;
+  updInstall(); if($('instGo'))$('instGo').onclick=doInstall; if($('instX'))$('instX').onclick=()=>{LS.set('citanie__insthide','1',true);updInstall()};
   if($('demoBar'))$('demoBar').onclick=()=>demoView();
   const ho=$('homeOwl'); if(ho){ho.onclick=()=>owlMood(ho,rand(['happy','wave']));setTimeout(()=>owlMood(ho,'wave'),500)}
   $('tLic').onclick=()=>licenseView();
@@ -2450,6 +2537,53 @@ function flGame(){setTitle('🔦 Svetielko');runQuiz({n:8,again:flGame,make:flMa
    PÍŠ PRSTOM – dieťa obťahuje písmenko prstom, appka skontroluje,
    či obťahovalo celé písmenko a nešlo mimo neho
    ===================================================================== */
+/* vyhodnotenie obťahovania: body ťahu musia ležať na písmenku (presnosť)
+   a ťahy musia prejsť po všetkých častiach písmenka (pokrytie po oblastiach) */
+function traceScore(strokes,o){
+  const R=180, k=R/o.W, w=R, h=Math.max(20,Math.round(o.H*k)), N=w*h, fs=o.fit.fs*k;
+  const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');
+  g.font=`${o.weight} ${fs}px ${o.font}`;g.fillText(o.txt,o.fit.x*k,o.fit.y*k);
+  const ga=g.getImageData(0,0,w,h).data, G=new Uint8Array(N); let gN=0;
+  for(let i=0;i<N;i++)if(ga[i*4+3]>110){G[i]=1;gN++}
+  const S2=Math.SQRT2;
+  const dist=(src)=>{const D=new Float32Array(N);for(let i=0;i<N;i++)D[i]=src[i]?0:1e9;
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++){const i=y*w+x;let d=D[i];if(x>0)d=Math.min(d,D[i-1]+1);if(y>0){d=Math.min(d,D[i-w]+1);if(x>0)d=Math.min(d,D[i-w-1]+S2);if(x<w-1)d=Math.min(d,D[i-w+1]+S2)}D[i]=d}
+    for(let y=h-1;y>=0;y--)for(let x=w-1;x>=0;x--){const i=y*w+x;let d=D[i];if(x<w-1)d=Math.min(d,D[i+1]+1);if(y<h-1){d=Math.min(d,D[i+w]+1);if(x<w-1)d=Math.min(d,D[i+w+1]+S2);if(x>0)d=Math.min(d,D[i+w-1]+S2)}D[i]=d}
+    return D};
+  if(!gN)return{pass:true,cov:1,acc:1,minCell:1,needAcc:0};
+  // polovičná hrúbka čiary písmenka
+  const inv=new Uint8Array(N);for(let i=0;i<N;i++)inv[i]=G[i]?0:1;
+  const DI=dist(inv); let half=0; for(let i=0;i<N;i++)if(G[i]&&DI[i]>half)half=DI[i];
+  const DG=dist(G);
+  // odhad dĺžky stredovej čiary písmenka (pre plnú čiaru hrúbky T je priemerná vzdialenosť od okraja ≈ T/4)
+  let sDI=0; for(let i=0;i<N;i++)if(G[i])sDI+=DI[i]; const T=Math.max(2,4*sDI/gN), Lskel=gN/T;
+  // body ťahu (prevzorkované každého pol pixela)
+  const P=new Uint8Array(N), pts=[];
+  strokes.forEach(s=>{for(let j=0;j<s.length;j++){const a=s[j],b=s[j+1]||a;const ax=a[0]*k,ay=a[1]*k,bx=b[0]*k,by=b[1]*k;
+    const n=Math.max(1,Math.ceil(Math.hypot(bx-ax,by-ay)*2));for(let t=0;t<n;t++){const x=Math.round(ax+(bx-ax)*t/n),y=Math.round(ay+(by-ay)*t/n);
+      if(x>=0&&y>=0&&x<w&&y<h){pts.push(y*w+x);P[y*w+x]=1}else pts.push(-1)}}});
+  let plen=0; strokes.forEach(s=>{for(let j=1;j<s.length;j++)plen+=Math.hypot((s[j][0]-s[j-1][0])*k,(s[j][1]-s[j-1][1])*k)});
+  const ratio=plen/Lskel;
+  const tol=half*.45+fs*(o.cur?.035:.025)+1.5; // max. vzdialenosť bodu ťahu od okraja písmenka
+  let inn=0; pts.forEach(i=>{if(i>=0&&DG[i]<=tol)inn++});
+  const acc=pts.length?inn/pts.length:0;
+  // pokrytie: pixel písmenka je pokrytý, ak je blízko nejakého bodu ťahu
+  const DP=dist(P), cr=half*1.15+fs*.02+1.5;
+  let x0=w,x1=0,y0=h,y1=0; for(let i=0;i<N;i++)if(G[i]){const x=i%w,y=(i/w)|0;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+  const cols=Math.max(3,Math.min(12,Math.round((x1-x0+1)/((y1-y0+1)/3)))), rows=3;
+  const cn=new Array(cols*rows).fill(0), cc=new Array(cols*rows).fill(0); let cov=0;
+  for(let i=0;i<N;i++)if(G[i]){const x=i%w,y=(i/w)|0;const ci=Math.min(rows-1,((y-y0)*rows/(y1-y0+1))|0)*cols+Math.min(cols-1,((x-x0)*cols/(x1-x0+1))|0);
+    cn[ci]++;if(DP[i]<=cr){cc[ci]++;cov++}}
+  cov/=gN; let minCell=1; cn.forEach((n,i)=>{if(n>=gN*.03)minCell=Math.min(minCell,cc[i]/n)});
+  // každá samostatná časť (písmenko, mäkčeň, bodka, dĺžeň) musí byť obťahaná aspoň z polovice
+  const lab=new Int32Array(N).fill(-1); let minPart=1;
+  for(let i=0;i<N;i++)if(G[i]&&lab[i]<0){const st=[i];lab[i]=i;let n=0,cv=0;
+    while(st.length){const q=st.pop();n++;if(DP[q]<=cr)cv++;const x=q%w,y=(q/w)|0;
+      for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const X=x+dx,Y=y+dy;if(X<0||Y<0||X>=w||Y>=h)continue;const j=Y*w+X;if(G[j]&&lab[j]<0){lab[j]=i;st.push(j)}}}
+    if(n>=Math.max(4,gN*.004))minPart=Math.min(minPart,cv/n)}
+  const needAcc=.8;
+  return{pass:acc>=needAcc&&cov>=.8&&minCell>=.5&&minPart>=.5&&ratio<=3.5,cov,acc,minCell,minPart,ratio,needAcc,half,fs};
+}
 const TR_KINDS=[['letter','Písmenko'],['syl','Slabika'],['word','Slovo']];
 const TR_STYLES=[['up','VEĽKÉ'],['lo','malé'],['cur','✍️ písané']];
 function traceTarget(kind){
@@ -2501,36 +2635,25 @@ function traceMaker(){
         cv.onpointerdown=e=>{if(done)return;e.preventDefault();cv.setPointerCapture(e.pointerId);cur=[pt(e)];strokes.push(cur);drawGuide()};
         cv.onpointermove=e=>{if(!cur)return;e.preventDefault();cur.push(pt(e));drawGuide()};
         cv.onpointerup=cv.onpointercancel=()=>{cur=null};
-        // vyhodnotenie na malej mriežke
+        // vyhodnotenie: presnosť ťahov a pokrytie celého písmenka (traceScore)
         const check=()=>{
           if(!strokes.length){$('trMsg').textContent='Najprv obťahuj písmenko prstom 👆';return}
-          const k=120/W, w=120, h=Math.round(H*k);
-          const mk=()=>{const c=document.createElement('canvas');c.width=w;c.height=h;return c.getContext('2d')};
-          const g=mk(), tol=mk(), u=mk(), fs=fit.fs*k;
-          g.font=`${weight} ${fs}px ${font}`;g.fillText(txt,fit.x*k,fit.y*k);
-          tol.font=g.font;tol.fillText(txt,fit.x*k,fit.y*k);tol.lineWidth=fs*(style==='cur'?.28:.22);tol.lineJoin='round';tol.strokeText(txt,fit.x*k,fit.y*k);
-          u.lineWidth=Math.max(3,fs*(style==='cur'?.16:.2));u.lineCap='round';u.lineJoin='round';
-          strokes.forEach(s=>{u.beginPath();s.forEach((p,i)=>i?u.lineTo(p[0]*k,p[1]*k):u.moveTo(p[0]*k,p[1]*k));if(s.length===1)u.lineTo(s[0][0]*k+.1,s[0][1]*k);u.stroke()});
-          const A=c=>c.getImageData(0,0,w,h).data, ga=A(g), ta=A(tol), ua=A(u);
-          let gN=0,gCov=0,uN=0,uIn=0;
-          for(let i=3;i<ga.length;i+=4){if(ga[i]>100){gN++;if(ua[i]>60)gCov++} if(ua[i]>100){uN++;if(ta[i]>40)uIn++}}
-          const cov=gN?gCov/gN:0, acc=uN?uIn/uN:0;
-          const pass=cov>=.6&&acc>=.72;
-          if(pass){
+          const r=traceScore(strokes,{W,H,fit,txt,font,weight,cur:style==='cur'}); window._trLast=r;
+          if(r.pass){
             done=true; drawGuide('#bbf7d0');
-            const stars=cov>.85&&acc>.88?3:cov>.72&&acc>.8?2:1;
+            const stars=r.cov>.88&&r.acc>.9?3:r.cov>.8&&r.acc>.84?2:1;
             $('trMsg').innerHTML=`${'⭐'.repeat(stars)} ${stars===3?'Perfektné!':stars===2?'Výborne!':'Dobre!'}`;
             setTimeout(()=>finish(mistakes===0),700);
           }else{
             mistakes++; drawGuide('#fecaca'); setTimeout(()=>drawGuide(),900);
-            $('trMsg').textContent=acc<.72?'Skús ísť presnejšie po sivom písmenku 🙂':'Ešte kúsok – obťahuj celé písmenko 👆';
+            $('trMsg').textContent=r.ratio>3.5?'Nečmáraj 🙂 Zmaž a obťahuj pekne po sivej čiare.':r.acc<r.needAcc?'Skús ísť presnejšie po sivom písmenku 🙂':'Ešte kúsok – obťahuj celé písmenko aj s mäkčeňmi a čiarkami 👆';
             owl('Skús to ešte raz 💪');
           }
         };
         $('trClr').onclick=()=>{strokes=[];drawGuide();$('trMsg').textContent='Obťahuj sivé písmenko prstom 👆'};
         $('trOk').onclick=check;
         $('trSkip').onclick=()=>{if(!done){done=true;finish(false)}};
-        Promise.all([document.fonts.load(`${weight} 80px ${font}`)]).catch(()=>{}).then(()=>{fit=fitText(ctx,W,H);drawGuide()});
+        Promise.all([document.fonts.load(`${weight} 80px ${font}`)]).catch(()=>{}).then(()=>{fit=fitText(ctx,W,H);cv._o={W,H,fit,txt,font,weight,cur:style==='cur'};drawGuide()});
       }};
   };
 }
@@ -2582,12 +2705,12 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 
 /* ---------- Zásady ochrany súkromia ---------- */
 const PRIVACY_HTML=`<h1>Zásady ochrany súkromia – Zvedavko</h1>
-<p class="upd">Platné od 10. 11. 2026</p>
+<p class="upd">Platné od 11. 11. 2026</p>
 
 <h2>Stručne</h2>
 <ul>
 <li>Zvedavko <b>nezbiera ani neodosiela</b> žiadne osobné údaje o deťoch ani o rodičoch.</li>
-<li>Všetko, čo do appky zadáte (meno dieťaťa, výsledky, nastavenia), zostáva <b>len vo vašom zariadení</b>.</li>
+<li>Všetko, čo do appky zadáte (meno dieťaťa, výsledky, nastavenia), zostáva <b>len vo vašom zariadení</b> – okrem prípadu, keď si pri plnej verzii zapnete ukladanie pokroku na server (pozri bod 3a).</li>
 <li>Appka nemá <b>reklamy</b>, nepoužíva <b>cookies</b>, <b>analytické ani sledovacie nástroje</b> a nevyžaduje registráciu.</li>
 </ul>
 
@@ -2606,6 +2729,10 @@ const PRIVACY_HTML=`<h1>Zásady ochrany súkromia – Zvedavko</h1>
 
 <h2>3. Prenos do iného zariadenia</h2>
 <p>Ak v časti „Deti a prenos“ vytvoríte kód, vznikne priamo vo vašom zariadení. Kód obsahuje postup a nastavenia dieťaťa. Kam ho skopírujete, rozhodujete vy – prevádzkovateľ ho nedostáva. Kód nikomu neposielajte, ak nechcete, aby videl postup vášho dieťaťa.</p>
+
+<h2>3a. Plná verzia a ukladanie pokroku cez kód</h2>
+<p>Pri aktivácii plnej verzie sa na server prevádzkovateľa (Cloudflare) odošle <b>kód</b> a <b>náhodné číslo zariadenia</b> (nie je to údaj o vás, slúži len na to, aby kód fungoval najviac na 2 zariadeniach).</p>
+<p>Ak zapnete <b>„Ukladať pokrok detí aj na server“</b>, uloží sa na server pod vaším kódom aj obsah appky: mená alebo prezývky detí v profiloch, písmenká, postup, hviezdičky a nastavenia. Slúži to len na to, aby bol pokrok rovnaký na všetkých vašich zariadeniach. Údaje sa nepredávajú ani neposkytujú nikomu ďalšiemu. Ukladanie môžete kedykoľvek vypnúť v časti „Plná verzia“ a o vymazanie údajov zo servera môžete požiadať na kontaktnom e-maile.</p>
 
 <h2>4. Hlas, karty na tlač a sťahovanie</h2>
 <ul>
@@ -3001,14 +3128,16 @@ main.addEventListener('change',e=>{if(e.target.id==='voiceSel'){store.set('voice
   const r=await fetch('manifest.json',{cache:'no-store'}); if(!r.ok)return;
   const l=document.createElement('link');l.rel='manifest';l.href='manifest.json';document.head.appendChild(l);
   if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+  PWA=true;
+  if(/pridat|install/i.test(location.hash+location.search)&&!isStandalone())installView();
+  else if(main.querySelector('.owlbox'))updInstall();
 }catch(e){}})();
 applyFont();
 updStars();
 if(!store.get('onboarded',false)&&S.stars>0)store.set('onboarded',true);
 if(store.get('onboarded',false))home();else welcome();
-initCloud();
-// plná verzia: odomkne hlas a obmedzenia (ak je kód uložený); potom obnoví úvod
-licStartup().then(()=>{if(isFull()&&main.querySelector('.owlbox'))home()});
+// plná verzia: odomkne hlas a obmedzenia (ak je kód uložený); potom pokrok zo servera a obnoví úvod
+licStartup().then(()=>{if(isFull()&&main.querySelector('.owlbox'))home();initCloud()});
 </script>
 </body>
 </html>

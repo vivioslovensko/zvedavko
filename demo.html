@@ -314,6 +314,7 @@
   .vchip{background:#fff;border-radius:999px;padding:7px 12px;font-size:16px;box-shadow:0 2px 0 #efe3cd}
   .vchip.ok{background:#e8f8de}.vchip.sel{outline:3px solid var(--yellow)}
   .note{background:#FFF1CC;border-radius:14px;padding:10px 12px;font-size:15px;margin-top:10px}
+.lk{opacity:.38!important;filter:grayscale(1)!important}
 </style>
 </head>
 <body>
@@ -715,8 +716,32 @@ function applyLimits(){
   if(isFull()){const st=store.get('known',null);if(st&&st.length>S.known.length&&S.known.every(x=>st.includes(x)))S.known=st;return}
   if(S.known.length>FREE_N)S.known=S.known.slice(0,FREE_N);
 }
+/* ukážka: zamknuté veci sú zašednuté, ťuknutie ukáže, čo je v plnej verzii */
+function demoLockType(el){
+  if(el.dataset.l||el.dataset.add){const L=el.dataset.l||el.dataset.add;return DEMO_LETTERS.includes(L)?null:'letter'}
+  if(el.dataset.card)return 'cards';
+  if(el.dataset.b!==undefined)return BANDS[+el.dataset.b]&&BANDS[+el.dataset.b][1]>FREE_MAX?'math':null;
+  if(el.dataset.sm)return spaceLocked(el.dataset.sm)?'space':null;
+  return null;
+}
+function demoLocks(){
+  if(!DEMO)return;
+  main.querySelectorAll('[data-l],[data-add],[data-card],[data-b],[data-sm]').forEach(el=>{
+    if(el.closest('.lt,.show'))return;
+    el.classList.toggle('lk',!!demoLockType(el));
+  });
+}
+if(typeof DEMO!=='undefined'&&DEMO){
+  document.addEventListener('click',e=>{
+    const el=e.target.closest&&e.target.closest('.lk'); if(!el)return;
+    e.preventDefault(); e.stopPropagation();
+    if(document.getElementById('wName')){owl('Toto písmenko je v plnej verzii 🙂');return}
+    upsell(demoLockType(el)||'letter');
+  },true);
+  new MutationObserver(()=>demoLocks()).observe(document.getElementById('main'),{childList:true,subtree:true});
+}
 function upsell(why){
-  const msg={letters:`V ukážke môže mať dieťa najviac ${FREE_N} písmen.`,math:`V ukážke sa dá počítať do ${FREE_MAX}.`,voice:'Nahratý hlas sovičky je v plnej verzii.'}[why]||'';
+  const msg={letters:`V ukážke môže mať dieťa najviac ${FREE_N} písmen.`,math:`V ukážke sa dá počítať do ${FREE_MAX}.`,voice:'Nahratý hlas sovičky je v plnej verzii.',cards:'Kartičky na tlač a diplom sú v plnej verzii.',letter:`Toto písmenko je v plnej verzii. V ukážke sú písmenká ${DEMO_LETTERS.join(', ')}.`,space:'Táto úroveň Vesmírnej sovičky je v plnej verzii.'}[why]||'';
   licenseView(msg);
 }
 function demoView(msg){
@@ -1008,7 +1033,7 @@ function home(){
    </div>
    <div class="panel">
      <h3>🎁 Karty na tlač</h3>
-     ${have>=CARDS_AT?`<div class="muted" style="margin-bottom:8px">Odomknuté! Vyber si kartu, stiahni ju a vytlač.</div>
+     ${have>=CARDS_AT?`<div class="muted" style="margin-bottom:8px">${DEMO?'🔒 Kartičky na tlač sú v plnej verzii.':'Odomknuté! Vyber si kartu, stiahni ju a vytlač.'}</div>
        <div class="cards" style="grid-template-columns:1fr 1fr 1fr;gap:10px">
          <button class="card c1" data-card="write" style="padding:12px 4px;font-size:16px"><span class="big" style="font-size:34px">✏️</span>Písanie</button>
          <button class="card c3" data-card="color" style="padding:12px 4px;font-size:16px"><span class="big" style="font-size:34px">🎨</span>Maľovanie</button>

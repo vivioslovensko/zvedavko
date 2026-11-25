@@ -339,7 +339,7 @@
   .encol{display:inline-block;width:1.1em;height:1.1em;border-radius:50%;border:3px solid rgba(0,0,0,.25);vertical-align:middle}
   .pc .encol{width:44px;height:44px}.enpic .encol{width:120px;height:120px}
   html.lang-de .enword,html.lang-de .opt.enw,html.lang-de .pw.en{color:#1E293B}
-  .art{font-weight:800}.art-der{color:#2563EB}.art-die{color:#DC2626}.art-das{color:#16A34A}
+  .art{font-weight:800}.art-m{color:#2563EB}.art-f{color:#DC2626}.art-n{color:#16A34A}
   .tile.de,.slot.de{text-transform:none}
 </style>
 </head>
@@ -676,7 +676,8 @@ const OPEN=true;                       // dočasná otvorená verzia (kým nebe�
 const DEMO=true; 
 const EN_ONLY=true; 
 const LANG='de';                       // jazyk samostatnej appky: 'en' = Zvedavko English, 'de' = Zvedavko Deutsch
-const LG=LANG==='de'?{flag:'🇩🇪',app:'Zvedavko Deutsch',adj:'nemecké',adjPl:'nemeckými',adv:'po nemecky',langG:'nemčiny',langI:'nemčine',langA:'nemčinu',tts:'de-DE',which:'Welches Wort?',star:'Deutsch-Star',cert:'URKUNDE',awarded:'Diese Urkunde bekommt',learned:'Wörter gelernt',starsW:'Sterne',well:'Super gemacht!',date:'Datum',sign:'Unterschrift',hello:'👋 Hallo! Ako sa voláš?',helloW:'Hallo!',bingo:'Deutsch-Bingo',voiceDesc:'rodenou nemčinou',abc:'abcdefghiklmnoprstuwzäöü'}
+const LG=LANG==='it'?{flag:'🇮🇹',app:'Zvedavko Italiano',adj:'talianske',adjPl:'talianskymi',adv:'po taliansky',langG:'taliančiny',langI:'taliančine',langA:'taliančinu',tts:'it-IT',which:'Quale parola?',star:'Stella dell\'italiano',cert:'ATTESTATO',awarded:'Questo attestato è per',learned:'parole imparate',starsW:'stelle',well:'Ben fatto!',date:'Data',sign:'Firma',hello:'👋 Ciao! Ako sa voláš?',helloW:'Ciao!',bingo:'Tombola italiana',voiceDesc:'hlasom v taliančine',abc:'abcdefgilmnoprstuvz',arts:['il','la',"l'"],artGame:"il, la o l'?"}
+  :LANG==='de'?{flag:'🇩🇪',app:'Zvedavko Deutsch',adj:'nemecké',adjPl:'nemeckými',adv:'po nemecky',langG:'nemčiny',langI:'nemčine',langA:'nemčinu',tts:'de-DE',which:'Welches Wort?',star:'Deutsch-Star',cert:'URKUNDE',awarded:'Diese Urkunde bekommt',learned:'Wörter gelernt',starsW:'Sterne',well:'Super gemacht!',date:'Datum',sign:'Unterschrift',hello:'👋 Hallo! Ako sa voláš?',helloW:'Hallo!',bingo:'Deutsch-Bingo',voiceDesc:'hlasom v nemčine',arts:['der','die','das'],artGame:'der, die oder das?',abc:'abcdefghiklmnoprstuwzäöü'}
   :{flag:'🇬🇧',app:'Zvedavko English',adj:'anglické',adjPl:'anglickými',adv:'po anglicky',langG:'angličtiny',langI:'angličtine',langA:'angličtinu',tts:'en-GB',which:'Which word?',star:'English Star',cert:'CERTIFICATE',awarded:'This certificate is awarded to',learned:'words learned',starsW:'stars',well:'Well done!',date:'Date',sign:'Signature',hello:'👋 Hello! Ako sa voláš?',helloW:'Hello!',bingo:'English Bingo',voiceDesc:'rodenou britskou angličtinou',abc:'abcdefghiklmnoprstuwy'};                   // english.html: samostatná appka Zvedavko English                      // demo.html: pevné písmenká, vlastný malý balík hlasu
 const DEMO_LETTERS=['A','Á','E','I','L','M','V'];
 const FREE_N=DEMO?DEMO_LETTERS.length:6, FREE_MAX=10;   // ukážka: najviac 6 písmen a počítanie do 10
@@ -1930,8 +1931,8 @@ const SPACE_MODES={
   mult:{t:'Násobilka',s:'krát a delené',e:'✖️'},
   read:{t:'Čítanie',s:'nájdi slovo k obrázku',e:'📖'},
   mix:{t:'Mix',s:'všetko spolu',e:'🌌'},
-  en:{t:(LANG==='de'?'Deutsch':'English')+': slovíčka',s:`nájdi ${LG.adj} slovo k obrázku`,e:LG.flag},
-  ensk:{t:(LANG==='de'?'Deutsch':'English')+': preklad',s:`zo slovenčiny do ${LG.langG}`,e:'🔤'}
+  en:{t:({de:'Deutsch',it:'Italiano'}[LANG]||'English')+': slovíčka',s:`nájdi ${LG.adj} slovo k obrázku`,e:LG.flag},
+  ensk:{t:({de:'Deutsch',it:'Italiano'}[LANG]||'English')+': preklad',s:`zo slovenčiny do ${LG.langG}`,e:'🔤'}
 };
 const spaceLocked=m=>!isFull()&&(m==='mid'||m==='hard'||m==='mult'||m==='ensk');
 const spaceReadPool=()=>getWords().filter(x=>x.e&&canRead(x.w)).map(x=>({w:x.w.replace(/-/g,''),e:x.e}));
@@ -2156,6 +2157,37 @@ function spaceGame(mode){
   requestAnimationFrame(t=>{last=t;requestAnimationFrame(frame)});
 }
 
+/* ===== TALIANČINA HROU – dáta (Zvedavko Italiano) ===== */
+// [taliansky (aj so členom), slovensky, obrázok]
+const IT_TOPICS=[
+ {id:'colours',sk:'Farby',e:'🎨',age:1,w:[['rosso','červená','🔴'],['blu','modrá','🔵'],['verde','zelená','🟢'],['giallo','žltá','🟡'],['arancione','oranžová','🟠'],['rosa','ružová','🩷'],['viola','fialová','🟣'],['marrone','hnedá','🟤'],['nero','čierna','⚫'],['bianco','biela','⚪'],['grigio','sivá','🩶']]},
+ {id:'numbers',sk:'Čísla 1–10',e:'🔢',age:1,num:true,w:[['uno','jeden','1'],['due','dva','2'],['tre','tri','3'],['quattro','štyri','4'],['cinque','päť','5'],['sei','šesť','6'],['sette','sedem','7'],['otto','osem','8'],['nove','deväť','9'],['dieci','desať','10']]},
+ {id:'animals',sk:'Zvieratá',e:'🐶',age:1,w:[['il cane','pes','🐕'],['il gatto','mačka','🐈'],['il pesce','ryba','🐟'],["l'uccello",'vták','🐦'],['il cavallo','kôň','🐴'],['la mucca','krava','🐄'],['il maiale','prasa','🐖'],['la pecora','ovca','🐑'],["l'anatra",'kačka','🦆'],['il coniglio','zajac','🐰'],['il topo','myš','🐭'],['il leone','lev','🦁'],['la tigre','tiger','🐯'],["l'elefante",'slon','🐘'],['la scimmia','opica','🐵'],["l'orso",'medveď','🐻'],['la rana','žaba','🐸'],['il serpente','had','🐍'],['la giraffa','žirafa','🦒'],['il gufo','sova','🦉']]},
+ {id:'food',sk:'Ovocie a jedlo',e:'🍎',age:1,w:[['la mela','jablko','🍎'],['la banana','banán','🍌'],['la pera','hruška','🍐'],["l'uva",'hrozno','🍇'],['la fragola','jahoda','🍓'],['la ciliegia','čerešňa','🍒'],['il limone','citrón','🍋'],["l'anguria",'melón','🍉'],['la carota','mrkva','🥕'],['il pomodoro','paradajka','🍅'],['la patata','zemiak','🥔'],['il pane','chlieb','🍞'],['il formaggio','syr','🧀'],["l'uovo",'vajce','🥚'],['il latte','mlieko','🥛'],["l'acqua",'voda','💧'],['la torta','torta','🍰'],['il gelato','zmrzlina','🍦'],['la pizza','pizza','🍕'],['il biscotto','keks','🍪'],['la cioccolata','čokoláda','🍫']]},
+ {id:'toys',sk:'Hračky',e:'🧸',age:1,w:[['la palla','lopta','⚽'],['la bambola','bábika','🪆'],["l'orsacchiotto",'macko','🧸'],["l'aquilone",'šarkan','🪁'],['il robot','robot','🤖'],['il palloncino','balón','🎈'],['il puzzle','puzzle','🧩'],['il tamburo','bubon','🥁'],['il mattoncino','kocka','🧱']]},
+ {id:'body',sk:'Telo',e:'👂',age:1,w:[["l'occhio",'oko','👁️'],["l'orecchio",'ucho','👂'],['il naso','nos','👃'],['la bocca','ústa','👄'],['la mano','ruka','✋'],['il piede','chodidlo','🦶'],['la gamba','noha','🦵'],['il braccio','rameno','💪'],['il dente','zub','🦷'],['i capelli','vlasy','💇']]},
+ {id:'family',sk:'Rodina',e:'👪',age:1,w:[['la mamma','mama','👩'],['il papà','otec','👨'],['il bebè','bábätko','👶'],['il fratello','brat','👦'],['la sorella','sestra','👧'],['la nonna','babka','👵'],['il nonno','dedko','👴'],['la famiglia','rodina','👪']]},
+ {id:'numbers20',sk:'Čísla 11–20',e:'🔟',age:2,num:true,w:[['undici','jedenásť','11'],['dodici','dvanásť','12'],['tredici','trinásť','13'],['quattordici','štrnásť','14'],['quindici','pätnásť','15'],['sedici','šestnásť','16'],['diciassette','sedemnásť','17'],['diciotto','osemnásť','18'],['diciannove','devätnásť','19'],['venti','dvadsať','20']]},
+ {id:'clothes',sk:'Oblečenie',e:'👕',age:2,w:[['il cappellino','čiapka','🧢'],['la maglietta','tričko','👕'],['il vestito','šaty','👗'],['i pantaloni','nohavice','👖'],['la scarpa','topánka','👟'],['il calzino','ponožka','🧦'],['il cappotto','kabát','🧥'],['la sciarpa','šál','🧣'],['il guanto','rukavica','🧤'],['gli occhiali','okuliare','👓']]},
+ {id:'home',sk:'Doma',e:'🏠',age:2,w:[['la casa','dom','🏠'],['la porta','dvere','🚪'],['la finestra','okno','🪟'],['il letto','posteľ','🛏️'],['la sedia','stolička','🪑'],['il divano','gauč','🛋️'],['la vasca','vaňa','🛁'],['la chiave','kľúč','🔑'],["l'orologio",'hodiny','🕰️'],['la lampada','lampa','💡']]},
+ {id:'school',sk:'Škola',e:'🎒',age:2,w:[['il libro','kniha','📕'],['la penna','pero','🖊️'],['la matita','ceruzka','✏️'],['lo zaino','školská taška','🎒'],['le forbici','nožnice','✂️'],['il righello','pravítko','📏'],['la maestra','učiteľka','🧑‍🏫'],['la scuola','škola','🏫'],['il computer','počítač','💻'],['il pennello','štetec','🖌️']]},
+ {id:'nature',sk:'Počasie a príroda',e:'🌈',age:2,w:[['il sole','slnko','☀️'],['la pioggia','dážď','🌧️'],['la neve','sneh','❄️'],['la nuvola','oblak','☁️'],["l'arcobaleno",'dúha','🌈'],["l'albero",'strom','🌳'],['il fiore','kvet','🌸'],['la stella','hviezda','⭐'],['la luna','mesiac','🌙'],['il mare','more','🌊']]},
+ {id:'transport',sk:'Doprava',e:'🚌',age:2,w:[['la macchina','auto','🚗'],["l'autobus",'autobus','🚌'],['la bicicletta','bicykel','🚲'],["l'aereo",'lietadlo','✈️'],['la barca','loď','⛵'],['il treno','vlak','🚂'],['il camion','nákladiak','🚚'],['il taxi','taxík','🚕'],['il trattore','traktor','🚜'],['il razzo','raketa','🚀']]},
+ {id:'feelings',sk:'Pocity',e:'😀',age:2,w:[['felice','veselý','😀'],['triste','smutný','😢'],['arrabbiato','nahnevaný','😠'],['spaventato','vystrašený','😨'],['stanco','unavený','🥱'],['affamato','hladný','😋'],['sorpreso','prekvapený','😮'],['malato','chorý','🤒']]},
+ {id:'actions',sk:'Čo robím',e:'🏃',age:3,w:[['correre','behať','🏃'],['nuotare','plávať','🏊'],['mangiare','jesť','🍽️'],['bere','piť','🥤'],['dormire','spať','😴'],['leggere','čítať','📖'],['scrivere','písať','✍️'],['cantare','spievať','🎤'],['ballare','tancovať','💃'],['giocare','hrať sa','🎮'],['cucinare','variť','👩‍🍳'],['andare in bici','bicyklovať','🚴']]},
+ {id:'phrases',sk:'Frázy',e:'💬',age:3,phr:true,w:[['Ciao!','Ahoj!','👋'],['Arrivederci!','Dovidenia!','🙋'],['Buongiorno!','Dobré ráno!','🌅'],['Buonanotte!','Dobrú noc!','🌙'],['Grazie!','Ďakujem!','🙏'],['Per favore.','Prosím.','🥺'],['Sì.','Áno.','✅'],['No.','Nie.','❌'],['Scusa!','Prepáč!','😔'],['Come stai?','Ako sa máš?','🙂'],['Sto bene, grazie.','Mám sa dobre, ďakujem.','👍'],['Come ti chiami?','Ako sa voláš?','❓'],['Quanti anni hai?','Koľko máš rokov?','🎂'],['Dai, giochiamo!','Poď, hráme sa!','🎲']]}
+];
+const IT_SENT=[
+ ['Il gatto è nero.','Mačka je čierna.','🐈‍⬛'],['Mi piacciono le mele.','Mám rád jablká.','🍎'],['Il cane corre.','Pes beží.','🐕'],['Piove.','Prší.','🌧️'],
+ ['Lei è felice.','Ona je veselá.','😀'],['Ho una palla rossa.','Mám červenú loptu.','⚽'],["L'uccello sa volare.",'Vták vie lietať.','🐦'],['Papà cucina.','Otec varí.','👨‍🍳'],
+ ['Siamo a scuola.','Sme v škole.','🏫'],['Il sole è caldo.','Slnko je horúce.','☀️'],['So nuotare.','Viem plávať.','🏊'],["L'elefante è grande.",'Slon je veľký.','🐘'],
+ ['Il topo è piccolo.','Myš je malá.','🐭'],['Lui legge un libro.','On číta knihu.','📖'],['Nevica.','Sneží.','❄️'],['Ho fame.','Som hladný.','😋'],
+ ['Giochiamo a calcio.','Hráme futbal.','⚽'],["Il pesce è nell'acqua.",'Ryba je vo vode.','🐟'],['Mi lavo i denti.','Umývam si zuby.','🪥'],['La macchina è veloce.','Auto je rýchle.','🏎️'],
+ ['Voglio bene alla mia famiglia.','Mám rád svoju rodinu.','👪'],['Il bebè dorme.','Bábätko spí.','👶'],['Ho sette anni.','Mám sedem rokov.','🎂'],['Il fiore è rosa.','Kvet je ružový.','🌸'],
+ ['La mia bici è nuova.','Môj bicykel je nový.','🚲'],['La scimmia mangia le banane.','Opica je banány.','🐵'],['Apri la porta, per favore.','Otvor, prosím, dvere.','🚪'],['Guarda, un arcobaleno!','Pozri, dúha!','🌈']
+];
+const IT_PRAISE=['Bene!','Ottimo!','Molto bene!','Fantastico!','Perfetto!','Ben fatto!'];
+const IT_BADGES=[['🐣','Principiante'],['🎨','Stella dei colori'],['🔢','Eroe dei numeri'],['🦁','Esperto di animali'],['🍎','Amante del cibo'],['🚀','Pilota spaziale'],['📚','Maestro di parole'],['🦉','Gufo saggio'],['🌈','Bimbo arcobaleno'],['🏆',"Campione d'italiano"],['👑','Superstar']];
 /* ===== NEMČINA HROU – dáta (Zvedavko Deutsch) ===== */
 // [nemecky (aj so členom), slovensky, obrázok]
 const DE_TOPICS=[
@@ -2218,14 +2250,17 @@ const EN_SENT_GB=[
  ['My bike is new.','Môj bicykel je nový.','🚲'],['The monkey likes bananas.','Opica má rada banány.','🐵'],['Open the door, please.','Otvor dvere, prosím.','🚪'],['Look at the rainbow!','Pozri na dúhu!','🌈']
 ];
 const EN_PRAISE_GB=['Well done!','Great job!','Excellent!','Super!','Brilliant!','Good job!'];
-if(LANG==='de')document.documentElement.classList.add('lang-de');
-const EN_TOPICS=LANG==='de'?DE_TOPICS:EN_TOPICS_GB, EN_SENT=LANG==='de'?DE_SENT:EN_SENT_GB, EN_PRAISE=LANG==='de'?DE_PRAISE:EN_PRAISE_GB;
+if(LANG!=='en')document.documentElement.classList.add('lang-de');
+const EN_TOPICS=LANG==='it'?IT_TOPICS:LANG==='de'?DE_TOPICS:EN_TOPICS_GB, EN_SENT=LANG==='it'?IT_SENT:LANG==='de'?DE_SENT:EN_SENT_GB, EN_PRAISE=LANG==='it'?IT_PRAISE:LANG==='de'?DE_PRAISE:EN_PRAISE_GB;
 const EN_DEMO=['colours','animals','numbers'];
 // člen (der/die/das) a samotné slovo
-function enParse(s){const m=String(s).match(/^(der|die|das) (.+)$/);return m?{art:m[1],bare:m[2]}:{art:'',bare:s}}
+function enParse(s){s=String(s);let m=LANG==='en'?null:s.match(/^(der|die|das|il|lo|la|i|gli|le) (.+)$/);if(m)return{art:m[1],bare:m[2]};
+  m=LANG==='it'?s.match(/^(l')(.+)$/):null;return m?{art:m[1],bare:m[2]}:{art:'',bare:s}}
+const artCls=a=>({der:'m',il:'m',lo:'m',i:'m',gli:'m',die:'f',la:'f',le:'f',das:'n',"l'":'n'})[a]||'m';
+const artHTML=a=>`<span class="art art-${artCls(a)}">${a}</span>${a.endsWith("'")?'':' '}`;
 const enItem=(w,t)=>({en:w[0],sk:w[1],e:w[2],num:!!t.num,phr:!!t.phr,t:t.id,...enParse(w[0])});
-const enWordHTML=x=>x.art?`<span class="art art-${x.art}">${x.art}</span> ${esc(x.bare)}`:esc(x.en);
-const enKey=t=>'en:'+String(t).toLowerCase().replace(/[’]/g,"'").replace(/[^a-zäöüß' ]/g,' ').replace(/\s+/g,' ').trim();
+const enWordHTML=x=>x.art?artHTML(x.art)+esc(x.bare):esc(x.en);
+const enKey=t=>'en:'+String(t).toLowerCase().replace(/[’]/g,"'").replace(/[^a-zäöüßàèéìíòóù' ]/g,' ').replace(/\s+/g,' ').trim();
 let enVoiceTTS=null;
 function enTTS(text,rate,tok){return new Promise(res=>{
   if(!hasTTS||tok!==spkTok)return res();
@@ -2283,7 +2318,7 @@ function enMenu(){
       ${a>=2?L('flash','⚡','Blesk','slovo sa ukáže len na chvíľu','c6'):''}
       ${a>=2?L('miss','🔡','Chýbajúce písmenko','doplň slovo','c1'):''}
       ${a>=2?L('match','🧩','Spoj dvojice',`obrázok a ${LG.adj} slovo`,'c2'):''}
-      ${LANG==='de'&&a>=2?L('art','🔵','der, die oder das?','vyber správny člen','c3'):''}
+      ${LANG!=='en'&&a>=2?L('art','🔵',LG.artGame,'vyber správny člen','c3'):''}
       ${a>=2?L('trans','🇸🇰','Ako sa to povie?',`zo slovenčiny do ${LG.langG}`,'c5'):''}
       ${a>=2?L('spell','✏️','Hláskuj',`poskladaj ${LG.adj} slovo`,'c6'):''}
       ${a>=3?L('sent','💬','Vety','vypočuj si vetu a nájdi obrázok','c1'):''}
@@ -2356,11 +2391,11 @@ function enTransMaker(){
 function enSpell(){setTitle('✏️ Hláskuj');runQuiz({n:8,again:enSpell,make:enSpellMaker()})}
 function enSpellMaker(){
   const max=enAge()>=3?10:6;
-  let pool=enPool({noPhr:true}).filter(x=>/^[a-zäöüß]+$/i.test(x.bare)&&x.bare.length<=max);
-  if(pool.length<4)pool=EN_TOPICS.flatMap(t=>t.phr?[]:t.w.map(w=>enItem(w,t))).filter(x=>/^[a-zäöüß]+$/i.test(x.bare)&&x.bare.length<=max);
+  let pool=enPool({noPhr:true}).filter(x=>/^[a-zäöüßàèéìíòóù]+$/i.test(x.bare)&&x.bare.length<=max);
+  if(pool.length<4)pool=EN_TOPICS.flatMap(t=>t.phr?[]:t.w.map(w=>enItem(w,t))).filter(x=>/^[a-zäöüßàèéìíòóù]+$/i.test(x.bare)&&x.bare.length<=max);
   const next=enDeck(pool);
   return()=>{const t=next();
-    return{label:`✏️ Poskladaj ${LG.adj} slovo`,track:enTrack(t),prompt:`<div class="enpic sm">${enPic(t)}</div>${t.art?`<div class="ensk"><span class="art art-${t.art}">${t.art}</span> …</div>`:''}<button class="sp" id="enSp">🔊 Počúvaj</button>`,
+    return{label:`✏️ Poskladaj ${LG.adj} slovo`,track:enTrack(t),prompt:`<div class="enpic sm">${enPic(t)}</div>${t.art?`<div class="ensk">${artHTML(t.art)}…</div>`:''}<button class="sp" id="enSp">🔊 Počúvaj</button>`,
       bind:()=>{$('enSp').onclick=()=>sayEn(t.en,0.8);setTimeout(()=>sayEn(t.en),350)},
       custom:(box,done)=>{
         const ls=[...t.bare], extra=shuffle(LG.abc.split('').filter(c=>!ls.map(x=>x.toLowerCase()).includes(c))).slice(0,2);
@@ -2418,7 +2453,7 @@ function enPex(){
 }
 /* ===== Zvedavko English – ďalšie hry, pokrok a karty na tlač ===== */
 const EN_BADGES_GB=[['🐣','Beginner'],['🎨','Colour Star'],['🔢','Number Hero'],['🦁','Animal Expert'],['🍎','Food Fan'],['🚀','Space Pilot'],['📚','Word Master'],['🦉','Wise Owl'],['🌈','Rainbow Kid'],['🏆','English Champion'],['👑','Super Star']];
-const EN_BADGES=LANG==='de'?DE_BADGES:EN_BADGES_GB;
+const EN_BADGES=LANG==='it'?IT_BADGES:LANG==='de'?DE_BADGES:EN_BADGES_GB;
 const EN_CARDS=[['enflash','🃏','Kartičky na vystrihnutie',5],['enwrite','✏️',`Napíš ${LG.adv}`,10],['enmatch','🔗','Spoj obrázok so slovom',15],['enbingo','🎲',LG.bingo,20],['endip','🏅',`Certifikát ${LG.star}`,30]];
 const enTrack=t=>['EN:'+t.en];
 function enLearned(){const st=getStats();return Object.keys(st).filter(k=>k.startsWith('EN:')&&st[k][0]>=2).length}
@@ -2478,12 +2513,12 @@ function enFlashMaker(){
 // 🔡 chýbajúce písmenko
 function enMissing(){setTitle('🔡 Chýbajúce písmenko');runQuiz({n:10,again:enMissing,make:enMissingMaker()})}
 function enMissingMaker(){
-  let pool=enPool({noPhr:true}).filter(x=>/^[a-zäöüß]{3,}$/i.test(x.bare));
-  if(pool.length<4)pool=EN_TOPICS.flatMap(t=>t.phr?[]:t.w.map(w=>enItem(w,t))).filter(x=>/^[a-zäöüß]{3,}$/i.test(x.bare));
+  let pool=enPool({noPhr:true}).filter(x=>/^[a-zäöüßàèéìíòóù]{3,}$/i.test(x.bare));
+  if(pool.length<4)pool=EN_TOPICS.flatMap(t=>t.phr?[]:t.w.map(w=>enItem(w,t))).filter(x=>/^[a-zäöüßàèéìíòóù]{3,}$/i.test(x.bare));
   const next=enDeck(pool);
   return()=>{const t=next(), W=[...t.bare], i=1+Math.floor(Math.random()*(W.length-1)), c=W[i];
     const wr=shuffle(LG.abc.split('').filter(x=>x!==c)).slice(0,2);
-    const shown=(t.art?`<span class="art art-${t.art}">${t.art}</span> `:'')+esc(W.slice(0,i).join(''))+'<span class="qm">_</span>'+esc(W.slice(i+1).join(''));
+    const shown=(t.art?artHTML(t.art):'')+esc(W.slice(0,i).join(''))+'<span class="qm">_</span>'+esc(W.slice(i+1).join(''));
     return{label:'🔡 Ktoré písmenko chýba?',prompt:`<div class="enpic sm">${enPic(t)}</div><div class="enword">${shown}</div><button class="sp" id="enSp">🔊</button>`,
       options:shuffle([c,...wr]).map(x=>({html:x,correct:x===c})),optClass:'txt',track:enTrack(t),
       bind:()=>{$('enSp').onclick=()=>sayEn(t.en,0.8)},onOk:()=>sayEnPraise(t.en)}};
@@ -2507,18 +2542,18 @@ function enMatchMaker(){
       }}};
 }
 // der / die / das – správny člen (len nemčina)
-function enArt(){setTitle('der, die oder das?');runQuiz({n:10,again:enArt,make:enArtMaker()})}
+function enArt(){setTitle(LG.artGame);runQuiz({n:10,again:enArt,make:enArtMaker()})}
 function enArtMaker(){
-  let pool=enPool({noPhr:true}).filter(x=>x.art); if(pool.length<4)pool=EN_TOPICS.flatMap(t=>t.w.map(w=>enItem(w,t))).filter(x=>x.art);
+  let pool=enPool({noPhr:true}).filter(x=>LG.arts.includes(x.art)); if(pool.length<4)pool=EN_TOPICS.flatMap(t=>t.w.map(w=>enItem(w,t))).filter(x=>LG.arts.includes(x.art));
   const next=enDeck(pool);
   return()=>{const t=next();
     return{label:'🔵🔴🟢 Ktorý člen?',prompt:`<div class="enpic sm">${enPic(t)}</div><div class="enword">___ ${esc(t.bare)}</div>`,
-      options:['der','die','das'].map(a=>({html:`<span class="art art-${a}">${a}</span>`,correct:a===t.art})),optClass:'txt',track:enTrack(t),onOk:()=>sayEnPraise(t.en)}};
+      options:LG.arts.map(a=>({html:`<span class="art art-${artCls(a)}">${a}</span>`,correct:a===t.art})),optClass:'txt',track:enTrack(t),onOk:()=>sayEnPraise(t.en)}};
 }
 // 🔥 denná výzva – mix hier, séria dní
 function enDaily(){
   setTitle('🔥 Denná výzva');
-  const a=enAge(), makers=[enListenMaker(),enTruthMaker(),...(a>=2?[enWhatMaker(),enMissingMaker(),enTransMaker(),enFlashMaker(),...(LANG==='de'?[enArtMaker()]:[])]:[enListenMaker()]),...(a>=3?[enSentMaker()]:[])];
+  const a=enAge(), makers=[enListenMaker(),enTruthMaker(),...(a>=2?[enWhatMaker(),enMissingMaker(),enTransMaker(),enFlashMaker(),...(LANG!=='en'?[enArtMaker()]:[])]:[enListenMaker()]),...(a>=3&&!DEMO?[enSentMaker()]:[])];
   runQuiz({n:12,again:enDaily,make:()=>rand(makers)(),onDone:sc=>{const d=store.get('en_days',[]);if(!d.includes(enToday())){d.push(enToday());store.set('en_days',d.slice(-60))}}});
 }
 // tlačové karty

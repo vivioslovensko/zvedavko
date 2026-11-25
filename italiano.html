@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Zvedavko Italiano</title>
+<title>Zvedavko Italiano – taliančina hrou</title>
 <meta name="description" content="Zvedavko – hra pre prvákov na učenie čítania a počítania – slová a vety len z písmeniek, ktoré dieťa pozná.">
 <meta name="theme-color" content="#FFB703">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2553,7 +2553,7 @@ function enArtMaker(){
 // 🔥 denná výzva – mix hier, séria dní
 function enDaily(){
   setTitle('🔥 Denná výzva');
-  const a=enAge(), makers=[enListenMaker(),enTruthMaker(),...(a>=2?[enWhatMaker(),enMissingMaker(),enTransMaker(),enFlashMaker(),...(LANG!=='en'?[enArtMaker()]:[])]:[enListenMaker()]),...(a>=3&&!DEMO?[enSentMaker()]:[])];
+  const a=enAge(), makers=[enListenMaker(),enTruthMaker(),...(a>=2?[enWhatMaker(),enMissingMaker(),enTransMaker(),enFlashMaker(),...(LANG!=='en'?[enArtMaker()]:[])]:[enListenMaker()]),...(a>=3?[enSentMaker()]:[])];
   runQuiz({n:12,again:enDaily,make:()=>rand(makers)(),onDone:sc=>{const d=store.get('en_days',[]);if(!d.includes(enToday())){d.push(enToday());store.set('en_days',d.slice(-60))}}});
 }
 // tlačové karty
